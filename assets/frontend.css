@@ -4,6 +4,10 @@
 	max-width: 960px;
 	margin: 0 auto;
 	color: #000;
+	/* Paw-print replacement for the browser's default pointing-hand cursor,
+	   used on every clickable control in the directory (pagination, quick
+	   view toggle, state map). 16 16 centers the hotspot on the main pad. */
+	--paccc-cursor-paw: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48ZWxsaXBzZSBjeD0iMTYiIGN5PSIyMyIgcng9IjkiIHJ5PSI3LjUiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTUgNiAxNCkiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iMTIuNSIgY3k9IjcuMyIgcng9IjMuOCIgcnk9IjQuOCIgdHJhbnNmb3JtPSJyb3RhdGUoLTYgMTIuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjE5LjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKDYgMTkuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjI2IiBjeT0iMTQiIHJ4PSIzLjYiIHJ5PSI0LjYiIHRyYW5zZm9ybT0icm90YXRlKDE1IDI2IDE0KSIgZmlsbD0iIzAwMCIvPjwvc3ZnPgo=") 16 16, pointer;
 }
 
 /* Map (jsVectorMap fills its container; container defines the size) */
@@ -88,7 +92,7 @@
 	border: 1px solid #000;
 	border-radius: 4px;
 	padding: 0.35rem 0.7rem;
-	cursor: pointer;
+	cursor: var(--paccc-cursor-paw);
 }
 
 .paccc-page:hover:not(:disabled),
@@ -150,7 +154,7 @@
 	padding: 0.4rem 0.9rem;
 	font: inherit;
 	font-size: 0.9em;
-	cursor: pointer;
+	cursor: var(--paccc-cursor-paw);
 	transition: background-color 0.15s ease;
 }
 

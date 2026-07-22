@@ -2,6 +2,12 @@
 (function () {
 	'use strict';
 
+	/* Same paw-print cursor as assets/frontend.css's --paccc-cursor-paw.
+	 * Kept in sync manually — jsVectorMap sets this as an inline SVG
+	 * "cursor" attribute via JS, so it can't read the CSS custom property. */
+	var PACCC_PAW_CURSOR =
+		'url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48ZWxsaXBzZSBjeD0iMTYiIGN5PSIyMyIgcng9IjkiIHJ5PSI3LjUiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTUgNiAxNCkiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iMTIuNSIgY3k9IjcuMyIgcng9IjMuOCIgcnk9IjQuOCIgdHJhbnNmb3JtPSJyb3RhdGUoLTYgMTIuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjE5LjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKDYgMTkuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjI2IiBjeT0iMTQiIHJ4PSIzLjYiIHJ5PSI0LjYiIHRyYW5zZm9ybT0icm90YXRlKDE1IDI2IDE0KSIgZmlsbD0iIzAwMCIvPjwvc3ZnPgo=) 16 16, pointer';
+
 	function ready(fn) {
 		if (document.readyState !== 'loading') {
 			fn();
@@ -112,7 +118,7 @@
 						draggable: false,
 						regionStyle: {
 							initial: { fill: '#ffffff', stroke: '#000000', strokeWidth: 0.6 },
-							hover: { fillOpacity: 0.85, cursor: 'pointer' }
+							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR }
 						},
 						series: {
 							regions: [{
@@ -135,7 +141,7 @@
 								fontSize: '9px',
 								fontWeight: data.fontWeight || '500',
 								fill: '#000000',
-								cursor: 'pointer'
+								cursor: PACCC_PAW_CURSOR
 							}
 						},
 						onRegionTooltipShow: function (event, tooltip, code) {
