@@ -334,23 +334,27 @@
 
 /* "Get Directions" as a real button (matching pagination/view-toggle
    chrome) rather than an easy-to-miss inline text link, since it's the
-   primary action a visitor takes on this page. */
+   primary action a visitor takes on this page. Sits on its own line below
+   the address (a <br> in the markup forces the break, since inline-flex
+   doesn't wrap to a new line on its own). */
 .paccc-member-single .paccc-directions {
 	display: inline-flex;
 	align-items: center;
-	margin-top: 0.75rem;
+	margin-top: 0.6rem;
 	padding: 0.4rem 0.9rem;
-	background: #fff;
-	border: 1px solid #000;
+	background: #622467;
+	color: #ffedbc;
+	border: 1px solid #622467;
 	border-radius: 4px;
 	text-decoration: none;
 	cursor: var(--paccc-cursor-paw);
-	transition: background-color 0.15s ease;
+	transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .paccc-member-single .paccc-directions:hover,
 .paccc-member-single .paccc-directions:focus-visible {
-	background: var(--paccc-accent, #ffe399);
+	background: #FECA38;
+	color: #fff;
 }
 
 .paccc-back-link {

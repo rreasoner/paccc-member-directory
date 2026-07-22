@@ -344,6 +344,7 @@ function paccc_md_single_content( $content ) {
 					<dd>
 						<?php echo $lines ? nl2br( esc_html( implode( "\n", $lines ) ) ) : '—'; ?>
 						<?php if ( $has_addr ) : ?>
+							<br>
 							<a class="paccc-directions" href="<?php echo esc_url( 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode( $mapq ) ); ?>" target="_blank" rel="noopener noreferrer">
 								Get Directions<span class="screen-reader-text"> to <?php echo esc_html( $m->business_name ); ?> (opens in a new tab)</span>
 							</a>
