@@ -1,5 +1,13 @@
 /* PACCC Member Directory — frontend styles. */
 
+/* jsVectorMap appends its state-hover tooltip directly to <body>, outside
+   .paccc-directory-wrap, so its background color can only be overridden via
+   this global custom property (declared at :root by assets/vendor/jsvectormap.min.css,
+   default #337FFA) rather than being scoped to the directory wrapper. */
+:root {
+	--jvm-tooltip-bg-color: #622467;
+}
+
 .paccc-directory-wrap {
 	max-width: 960px;
 	margin: 0 auto;
