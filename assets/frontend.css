@@ -6,18 +6,20 @@
    default #337FFA) rather than being scoped to the directory wrapper. */
 :root {
 	--jvm-tooltip-bg-color: #622467;
+	/* Paw-print replacement for the browser's default pointing-hand cursor,
+	   used on every clickable control across both the directory shortcode
+	   (pagination, quick view toggle, state map) and the single member page
+	   (Get Directions). Declared at :root, not .paccc-directory-wrap, because
+	   those two are separate page wrappers, not nested. #5C2461 fill with a
+	   2px #FECA38 outline; canvas is 36x36 (2px inset all round for the
+	   outline), so 18 18 centers the hotspot on the main pad. */
+	--paccc-cursor-paw: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyIDIpIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNGRUNBMzgiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PGcgZmlsbD0iIzVDMjQ2MSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PC9nPjwvc3ZnPg==") 18 18, pointer;
 }
 
 .paccc-directory-wrap {
 	max-width: 960px;
 	margin: 0 auto;
 	color: #000;
-	/* Paw-print replacement for the browser's default pointing-hand cursor,
-	   used on every clickable control in the directory (pagination, quick
-	   view toggle, state map). #5C2461 fill with a 2px #FECA38 outline;
-	   canvas is 36x36 (2px inset all round for the outline), so 18 18
-	   centers the hotspot on the main pad. */
-	--paccc-cursor-paw: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyIDIpIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNGRUNBMzgiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PGcgZmlsbD0iIzVDMjQ2MSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PC9nPjwvc3ZnPg==") 18 18, pointer;
 }
 
 /* Map (jsVectorMap fills its container; container defines the size) */
@@ -277,7 +279,8 @@
 @media (prefers-reduced-motion: reduce) {
 	.paccc-view-toggle,
 	.paccc-view-toggle::after,
-	.paccc-linked {
+	.paccc-linked,
+	.paccc-member-single .paccc-directions {
 		transition: none;
 	}
 }
@@ -287,8 +290,67 @@
 	margin-top: 1.5rem;
 }
 
-.paccc-member-single .paccc-member-details {
+/* White card grouping the credentials, details, and map -- mirrors
+   .paccc-directory-panel so the profile reads as one designed unit instead
+   of bare text on the theme's page background. */
+.paccc-member-card {
+	background: #fff;
+	padding: 20px;
+	border-radius: 8px;
+}
+
+/* Certification pills lead the card (credentials-first), so drop the
+   .paccc-cert-list's normal top margin -- that's meant for the space under
+   the business name/location line it usually follows in the directory list. */
+.paccc-member-card .paccc-cert-list {
+	margin: 0 0 1.25rem;
+}
+
+.paccc-member-card .paccc-member-details {
 	margin-bottom: 1.5rem;
+}
+
+/* Member Number is an internal registry ID, not something a public visitor
+   needs first -- de-emphasized rather than removed, since it's still useful
+   for e.g. a member cross-checking their own certificate. */
+.paccc-member-number-row dt,
+.paccc-member-number-row dd {
+	font-weight: 400;
+	font-size: 0.85em;
+	color: #666;
+}
+
+.paccc-map-label {
+	margin: 0 0 0.5rem;
+	font-size: 1em;
+	font-weight: 700;
+}
+
+.paccc-member-card .paccc-map-embed {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* "Get Directions" as a real button (matching pagination/view-toggle
+   chrome) rather than an easy-to-miss inline text link, since it's the
+   primary action a visitor takes on this page. */
+.paccc-member-single .paccc-directions {
+	display: inline-flex;
+	align-items: center;
+	margin-top: 0.75rem;
+	padding: 0.4rem 0.9rem;
+	background: #fff;
+	border: 1px solid #000;
+	border-radius: 4px;
+	text-decoration: none;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease;
+}
+
+.paccc-member-single .paccc-directions:hover,
+.paccc-member-single .paccc-directions:focus-visible {
+	background: var(--paccc-accent, #ffe399);
 }
 
 .paccc-back-link {

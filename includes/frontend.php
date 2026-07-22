@@ -300,49 +300,67 @@ function paccc_md_single_content( $content ) {
 	paccc_md_enqueue_frontend( false );
 	wp_enqueue_script( 'paccc-md-single', PACCC_MD_URL . 'assets/single.js', array(), PACCC_MD_VERSION, true );
 
-	$certs     = implode( ', ', $m->certifications );
-	$lines     = paccc_md_address_lines( $m );
-	$has_addr  = paccc_md_has_address( $m );
-	$mapq      = paccc_md_map_query( $m );
-	$dir_page  = (int) get_option( 'paccc_directory_page_id' );
-	$dir_link  = $dir_page ? get_permalink( $dir_page ) : '';
+	$lines       = paccc_md_address_lines( $m );
+	$has_addr    = paccc_md_has_address( $m );
+	$mapq        = paccc_md_map_query( $m );
+	$dir_page    = (int) get_option( 'paccc_directory_page_id' );
+	$dir_link    = $dir_page ? get_permalink( $dir_page ) : '';
+	$cert_labels = paccc_md_cert_labels();
 
 	ob_start();
 	?>
 	<div class="paccc-member-single">
-		<dl class="paccc-member-details">
-			<div>
-				<dt>Member Number</dt>
-				<dd><?php echo esc_html( $m->member_number ); ?></dd>
-			</div>
-			<div>
-				<dt>Business Name</dt>
-				<dd><?php echo esc_html( $m->business_name ); ?></dd>
-			</div>
-			<div>
-				<dt>Member Name</dt>
-				<dd><?php echo esc_html( $m->member_name ); ?></dd>
-			</div>
-			<div>
-				<dt>Certification(s)</dt>
-				<dd><?php echo esc_html( $certs ? $certs : '—' ); ?></dd>
-			</div>
-			<div>
-				<dt>Address</dt>
-				<dd>
-					<?php echo $lines ? nl2br( esc_html( implode( "\n", $lines ) ) ) : '—'; ?>
-					<?php if ( $has_addr ) : ?>
-						<a class="paccc-directions" href="<?php echo esc_url( 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode( $mapq ) ); ?>" target="_blank" rel="noopener noreferrer">
-							Get Directions<span class="screen-reader-text"> to <?php echo esc_html( $m->business_name ); ?> (opens in a new tab)</span>
-						</a>
-					<?php endif; ?>
-				</dd>
-			</div>
-		</dl>
+		<div class="paccc-member-card">
+			<?php if ( $m->certifications ) : ?>
+				<ul class="paccc-cert-list">
+					<?php foreach ( $m->certifications as $cert ) : ?>
+						<li class="paccc-cert">
+							<?php if ( isset( $cert_labels[ $cert ] ) ) : ?>
+								<abbr title="<?php echo esc_attr( $cert_labels[ $cert ] ); ?>"><?php echo esc_html( $cert ); ?></abbr>
+							<?php else : ?>
+								<?php echo esc_html( $cert ); ?>
+							<?php endif; ?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
 
-		<?php if ( $has_addr ) : ?>
-			<div class="paccc-map-embed" data-address="<?php echo esc_attr( $mapq ); ?>"></div>
-		<?php endif; ?>
+			<?php
+			/*
+			 * Business Name is dropped here -- it's already the page's H1.
+			 * Certification(s) is dropped too -- shown as pills above instead.
+			 * Member Number stays last and de-emphasized rather than removed
+			 * outright, since it's still useful for e.g. a member
+			 * cross-checking their own certificate.
+			 */
+			?>
+			<dl class="paccc-member-details">
+				<div>
+					<dt>Member Name</dt>
+					<dd><?php echo esc_html( $m->member_name ); ?></dd>
+				</div>
+				<div>
+					<dt>Address</dt>
+					<dd>
+						<?php echo $lines ? nl2br( esc_html( implode( "\n", $lines ) ) ) : '—'; ?>
+						<?php if ( $has_addr ) : ?>
+							<a class="paccc-directions" href="<?php echo esc_url( 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode( $mapq ) ); ?>" target="_blank" rel="noopener noreferrer">
+								Get Directions<span class="screen-reader-text"> to <?php echo esc_html( $m->business_name ); ?> (opens in a new tab)</span>
+							</a>
+						<?php endif; ?>
+					</dd>
+				</div>
+				<div class="paccc-member-number-row">
+					<dt>Member Number</dt>
+					<dd><?php echo esc_html( $m->member_number ); ?></dd>
+				</div>
+			</dl>
+
+			<?php if ( $has_addr ) : ?>
+				<h2 class="paccc-map-label">Location</h2>
+				<div class="paccc-map-embed" data-address="<?php echo esc_attr( $mapq ); ?>"></div>
+			<?php endif; ?>
+		</div>
 
 		<?php if ( $dir_link ) : ?>
 			<p class="paccc-back-link"><a href="<?php echo esc_url( $dir_link ); ?>">&laquo; Back to the member directory</a></p>
