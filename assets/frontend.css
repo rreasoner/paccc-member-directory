@@ -1,0 +1,463 @@
+/* PACCC Member Directory — frontend styles. */
+
+.paccc-directory-wrap {
+	max-width: 960px;
+	margin: 0 auto;
+	color: #000;
+}
+
+/* Map (jsVectorMap fills its container; container defines the size) */
+.paccc-map {
+	width: 100%;
+	aspect-ratio: 1.6 / 1;
+	min-height: 260px;
+	margin: 0 auto 2rem;
+	background: #fff;
+}
+
+/* Offshore Northeast state names render just outside the drawn map bounds */
+.paccc-map,
+.paccc-map svg {
+	overflow: visible;
+}
+
+/* The map needs width for 51 full state names to stay legible, so it's
+   hidden at 1000px and below. The dropdown remains the filter on small
+   screens. */
+@media (max-width: 1000px) {
+	.paccc-map {
+		display: none;
+	}
+}
+
+/* Panel holding the state filter, member list, and pagination.
+   White background so the section reads independently of the theme's
+   page background. */
+.paccc-directory-panel {
+	background: #fff;
+	padding: 20px;
+	border-radius: 8px;
+}
+
+/* State filter dropdown */
+.paccc-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 0.75rem;
+	margin: 0 0 0.75rem;
+}
+
+.paccc-controls label {
+	font-weight: 700;
+}
+
+.paccc-controls select {
+	font: inherit;
+	color: #000;
+	background: #fff;
+	border: 1px solid #000;
+	border-radius: 4px;
+	padding: 0.4rem 0.6rem;
+	max-width: 100%;
+}
+
+.paccc-status {
+	margin: 0 0 1rem;
+	font-size: 0.95em;
+}
+
+/* Pagination */
+.paccc-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem;
+	margin: 1.25rem 0 0;
+}
+
+.paccc-pagination[hidden] {
+	display: none;
+}
+
+.paccc-page {
+	font: inherit;
+	font-size: 0.9em;
+	color: #000;
+	background: #fff;
+	border: 1px solid #000;
+	border-radius: 4px;
+	padding: 0.35rem 0.7rem;
+	cursor: pointer;
+}
+
+.paccc-page:hover:not(:disabled),
+.paccc-page:focus-visible:not(:disabled) {
+	background: var(--paccc-accent, #ffe399);
+}
+
+.paccc-page:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.paccc-page-current {
+	background: var(--paccc-accent, #ffe399);
+	font-weight: 700;
+}
+
+.paccc-page-gap {
+	padding: 0 0.15rem;
+}
+
+/* Member list */
+.paccc-members {
+	border-top: 2px solid #000;
+}
+
+.paccc-member {
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.paccc-member-summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	padding: 0.9rem 0;
+}
+
+/* Semantically a heading (document outline / SEO), styled as body text so
+   the visual design is unchanged. */
+.paccc-member-line {
+	margin: 0;
+	padding: 0;
+	font-size: 1em;
+	font-weight: 400;
+	line-height: inherit;
+	letter-spacing: normal;
+	text-transform: none;
+	color: inherit;
+}
+
+.paccc-view-toggle {
+	flex-shrink: 0;
+	background: #fff;
+	color: #000;
+	border: 1px solid #000;
+	border-radius: 4px;
+	padding: 0.4rem 0.9rem;
+	font: inherit;
+	font-size: 0.9em;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.paccc-view-toggle::after {
+	content: "\25BE"; /* ▾ */
+	display: inline-block;
+	margin-left: 0.45em;
+	transition: transform 0.15s ease;
+}
+
+.paccc-view-toggle:hover,
+.paccc-view-toggle:focus-visible {
+	background: var(--paccc-accent, #ffe399);
+}
+
+.paccc-open .paccc-view-toggle::after {
+	transform: rotate(180deg);
+}
+
+/* Expanded panel */
+.paccc-member-panel {
+	padding: 0 0 1.4rem;
+}
+
+.paccc-member-details {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0.4rem 1.6rem;
+	margin: 0 0 1rem;
+}
+
+.paccc-member-details > div {
+	display: contents;
+}
+
+.paccc-member-details dt {
+	font-weight: 700;
+}
+
+.paccc-member-details dd {
+	margin: 0;
+}
+
+/* "Get Directions" sits under the address lines */
+.paccc-directions {
+	display: inline-block;
+	margin-top: 0.5rem;
+	color: #000;
+	font-size: 0.9em;
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+.paccc-directions:hover,
+.paccc-directions:focus-visible {
+	background: var(--paccc-accent, #ffe399);
+	text-decoration: none;
+}
+
+/* Most themes define this, but don't count on it. */
+.paccc-directory-wrap .screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.paccc-map-embed iframe {
+	display: block;
+	width: 100%;
+	height: 320px;
+	border: 0;
+}
+
+/* Row highlighted when reached via a unique link */
+.paccc-linked {
+	background: #fff4d1;
+	transition: background-color 0.6s ease;
+}
+
+.paccc-empty {
+	padding: 1rem 0;
+}
+
+@media (max-width: 600px) {
+	.paccc-member-summary {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.paccc-view-toggle {
+		align-self: flex-start;
+	}
+
+	.paccc-member-details {
+		grid-template-columns: 1fr;
+		gap: 0.1rem;
+	}
+
+	.paccc-member-details dt {
+		margin-top: 0.5rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.paccc-view-toggle,
+	.paccc-view-toggle::after,
+	.paccc-linked {
+		transition: none;
+	}
+}
+
+/* ---- Single member page ---- */
+.paccc-member-single {
+	margin-top: 1.5rem;
+}
+
+.paccc-member-single .paccc-member-details {
+	margin-bottom: 1.5rem;
+}
+
+.paccc-back-link {
+	margin-top: 1.25rem;
+}
+
+/* Business name links to the member's own page */
+.paccc-member-line a {
+	font-weight: 700;
+	color: inherit;
+	text-decoration: underline;
+}
+
+.paccc-member-line a:hover,
+.paccc-member-line a:focus-visible {
+	background: var(--paccc-accent, #ffe399);
+}
+
+.paccc-member-permalink {
+	margin: 0.75rem 0 0;
+	font-size: 0.9em;
+}
+
+/* ---- Single member page container ---- */
+.paccc-single-wrap {
+	width: 1334px;
+	max-width: 100%;
+	padding-left: 20px;
+	padding-right: 20px;
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+}
+
+/* ---- Map hint ---- */
+.paccc-map-hint {
+	margin: -1rem 0 1.5rem;
+	font-size: 0.9em;
+	text-align: center;
+}
+
+@media (max-width: 1000px) {
+	.paccc-map-hint { display: none; }
+}
+
+/* ---- Certification legend ---- */
+/* Certification key — a white credential card, not a gray notice. */
+.paccc-legend {
+	margin: 0 0 1.5rem;
+	padding: 1rem 1.25rem;
+	background: #fff;
+	border: 1px solid #d9d9d9;
+	border-radius: 12px;
+}
+
+.paccc-legend-heading {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	font-size: 0.72em;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #555;
+}
+
+/* Horizontal band: three credentials read as a set, not a to-do list. */
+.paccc-legend-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+	gap: 0.75rem 1.25rem;
+	margin: 0;
+	padding: 0;
+}
+
+.paccc-legend-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+.paccc-legend-term {
+	flex: 0 0 auto;
+	margin: 0;
+	font-weight: 400;
+}
+
+.paccc-legend-def {
+	margin: 0;
+	font-size: 0.85em;
+	line-height: 1.45;
+	color: #444;
+}
+
+/* ---- Member rows ---- */
+.paccc-member-summary {
+	align-items: flex-start;
+	padding: 1.15rem 0;
+}
+
+.paccc-member-identity { flex: 1 1 auto; }
+
+.paccc-member:hover { background: #fafafa; }
+
+.paccc-member-name {
+	margin: 0 0 0.2rem;
+	padding: 0;
+	font-size: 1.05em;
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.paccc-member-name a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.paccc-member-name a:hover,
+.paccc-member-name a:focus-visible {
+	text-decoration: underline;
+}
+
+.paccc-member-meta {
+	margin: 0;
+	font-size: 0.92em;
+	color: #444;
+}
+
+.paccc-member-person + .paccc-member-location::before {
+	content: "\00b7";
+	margin: 0 0.45em;
+}
+
+/* Certification pills */
+.paccc-cert-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	list-style: none;
+	margin: 0.5rem 0 0;
+	padding: 0;
+}
+
+/* One pill definition, used by both the member rows and the legend, so the
+   key visually matches the badges it explains. */
+.paccc-cert,
+.paccc-cert-badge {
+	display: inline-block;
+	margin: 0;
+	padding: 0.12rem 0.5rem;
+	background: #622467;
+	color: #ffedbc;
+	border: 1px solid #622467;
+	border-radius: 999px;
+	font-size: 0.75em;
+	font-weight: 700;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.paccc-legend .paccc-cert-badge {
+	font-size: 0.72em;
+}
+
+.paccc-cert abbr {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px dotted currentColor;
+	cursor: help;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 600px) {
+	.paccc-controls { display: block; }
+
+	.paccc-controls select {
+		width: 100%;
+		min-height: 44px;
+		margin-top: 0.35rem;
+	}
+
+	.paccc-view-toggle {
+		min-height: 44px;
+		margin-top: 0.6rem;
+	}
+}
