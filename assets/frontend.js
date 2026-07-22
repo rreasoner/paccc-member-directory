@@ -6,7 +6,7 @@
 	 * Kept in sync manually — jsVectorMap sets this as an inline SVG
 	 * "cursor" attribute via JS, so it can't read the CSS custom property. */
 	var PACCC_PAW_CURSOR =
-		'url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48ZWxsaXBzZSBjeD0iMTYiIGN5PSIyMyIgcng9IjkiIHJ5PSI3LjUiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTUgNiAxNCkiIGZpbGw9IiMwMDAiLz48ZWxsaXBzZSBjeD0iMTIuNSIgY3k9IjcuMyIgcng9IjMuOCIgcnk9IjQuOCIgdHJhbnNmb3JtPSJyb3RhdGUoLTYgMTIuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjE5LjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKDYgMTkuNSA3LjMpIiBmaWxsPSIjMDAwIi8+PGVsbGlwc2UgY3g9IjI2IiBjeT0iMTQiIHJ4PSIzLjYiIHJ5PSI0LjYiIHRyYW5zZm9ybT0icm90YXRlKDE1IDI2IDE0KSIgZmlsbD0iIzAwMCIvPjwvc3ZnPgo=) 16 16, pointer';
+		'url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyIDIpIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNGRUNBMzgiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PGcgZmlsbD0iIzVDMjQ2MSI+PGVsbGlwc2UgY3g9IjE2IiBjeT0iMjMiIHJ4PSI5IiByeT0iNy41Ii8+PGVsbGlwc2UgY3g9IjYiIGN5PSIxNCIgcng9IjMuNiIgcnk9IjQuNiIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDYgMTQpIi8+PGVsbGlwc2UgY3g9IjExLjUiIGN5PSI3LjMiIHJ4PSIzLjgiIHJ5PSI0LjgiIHRyYW5zZm9ybT0icm90YXRlKC02IDExLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyMC41IiBjeT0iNy4zIiByeD0iMy44IiByeT0iNC44IiB0cmFuc2Zvcm09InJvdGF0ZSg2IDIwLjUgNy4zKSIvPjxlbGxpcHNlIGN4PSIyNiIgY3k9IjE0IiByeD0iMy42IiByeT0iNC42IiB0cmFuc2Zvcm09InJvdGF0ZSgxNSAyNiAxNCkiLz48L2c+PC9nPjwvc3ZnPg==) 18 18, pointer';
 
 	function ready(fn) {
 		if (document.readyState !== 'loading') {
@@ -118,7 +118,9 @@
 						draggable: false,
 						regionStyle: {
 							initial: { fill: '#ffffff', stroke: '#000000', strokeWidth: 0.6 },
-							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR }
+							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR },
+							selected: { cursor: PACCC_PAW_CURSOR },
+							selectedHover: { cursor: PACCC_PAW_CURSOR }
 						},
 						series: {
 							regions: [{
@@ -136,11 +138,18 @@
 							}
 						},
 						regionLabelStyle: {
+							/* jsVectorMap's own defaults are initial: {cursor:'default'}
+							 * and hover: {cursor:'pointer'} -- both must be overridden
+							 * here, or hovering directly over the state-name text swaps
+							 * away from the paw to the browser's default pointer. */
 							initial: {
 								fontFamily: data.fontFamily ? '"' + data.fontFamily + '", inherit' : 'inherit',
 								fontSize: '9px',
 								fontWeight: data.fontWeight || '500',
 								fill: '#000000',
+								cursor: PACCC_PAW_CURSOR
+							},
+							hover: {
 								cursor: PACCC_PAW_CURSOR
 							}
 						},

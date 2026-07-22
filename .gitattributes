@@ -1,0 +1,9 @@
+# Normalize all text files to LF in the repo, regardless of each
+# contributor's local core.autocrlf setting, so line endings never
+# depend on who last touched a file.
+* text=auto eol=lf
+
+# Compiled gettext catalogs are binary -- never run line-ending
+# conversion on them (autocrlf's own NUL-byte heuristic already
+# catches this, but pin it explicitly rather than rely on that).
+*.mo binary
