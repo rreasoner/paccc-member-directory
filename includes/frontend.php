@@ -361,7 +361,7 @@ add_filter( 'the_content', 'paccc_md_single_content' );
  * Themer layout (or any page builder) renders exactly what the built-in
  * single-member template does.
  */
-function paccc_md_member_details_html( $m ) {
+function paccc_md_member_details_html( $m, $show_business_name = false ) {
 	paccc_md_enqueue_frontend( false );
 	wp_enqueue_script( 'paccc-md-single', PACCC_MD_URL . 'assets/single.js', array(), PACCC_MD_VERSION, true );
 
@@ -392,7 +392,10 @@ function paccc_md_member_details_html( $m ) {
 
 			<?php
 			/*
-			 * Business Name is dropped here -- it's already the page's H1.
+			 * On the built-in single template the business name is the page's
+			 * H1, so it's dropped here to avoid repeating it ($show_business_name
+			 * is false). The [paccc_member] shortcode has no such heading, so it
+			 * passes true and the name shows above Member Name.
 			 * Certification(s) is dropped too -- shown as pills above instead.
 			 * Member Number stays last and de-emphasized rather than removed
 			 * outright, since it's still useful for e.g. a member
@@ -400,6 +403,12 @@ function paccc_md_member_details_html( $m ) {
 			 */
 			?>
 			<dl class="paccc-member-details">
+				<?php if ( $show_business_name && '' !== trim( (string) $m->business_name ) ) : ?>
+					<div>
+						<dt>Business Name</dt>
+						<dd><?php echo esc_html( $m->business_name ); ?></dd>
+					</div>
+				<?php endif; ?>
 				<div>
 					<dt>Member Name</dt>
 					<dd><?php echo esc_html( $m->member_name ); ?></dd>
@@ -455,7 +464,9 @@ function paccc_md_member_shortcode( $atts ) {
 	}
 
 	$m = paccc_md_get_member( $id );
-	return $m ? paccc_md_member_details_html( $m ) : '';
+	// Show the business name (the built-in template omits it as its H1, but a
+	// shortcode placement has no guaranteed heading).
+	return $m ? paccc_md_member_details_html( $m, true ) : '';
 }
 add_shortcode( 'paccc_member', 'paccc_md_member_shortcode' );
 
