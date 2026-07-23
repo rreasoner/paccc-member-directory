@@ -383,6 +383,18 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 	ob_start();
 	?>
 	<div class="paccc-member-single">
+		<?php if ( $dir_link ) : ?>
+			<?php
+			/*
+			 * Breadcrumb, above the card: the way back should be the first thing
+			 * on the page, not something to hunt for below a tall map embed.
+			 */
+			?>
+			<nav class="paccc-back-link" aria-label="Breadcrumb">
+				<a href="<?php echo esc_url( $dir_link ); ?>">&laquo; Back to all members</a>
+			</nav>
+		<?php endif; ?>
+
 		<div class="paccc-member-card">
 			<?php if ( $m->certifications ) : ?>
 				<ul class="paccc-cert-list">
@@ -445,10 +457,6 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 				<div class="paccc-map-embed" data-address="<?php echo esc_attr( $mapq ); ?>"></div>
 			<?php endif; ?>
 		</div>
-
-		<?php if ( $dir_link ) : ?>
-			<p class="paccc-back-link"><a href="<?php echo esc_url( $dir_link ); ?>">&laquo; Back to all members</a></p>
-		<?php endif; ?>
 	</div>
 	<?php
 	return ob_get_clean();

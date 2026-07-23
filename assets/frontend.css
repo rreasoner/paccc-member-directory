@@ -445,6 +445,28 @@
 	margin-bottom: 1.5rem;
 }
 
+/* Field labels take the theme's heading font and the brand purple; the values
+   sit in a softer dark gray, so each row reads as a label/value pair rather
+   than a wall of uniform body text.
+
+   The --paccc-heading-* values are set at runtime by assets/single.js: CSS
+   can't inherit another element's styles, so the script measures a real
+   heading and publishes its family/weight/style/spacing/transform here. Size
+   is intentionally not copied -- these are small labels, not section
+   headings. Each var() has a fallback for when the script hasn't run. */
+.paccc-member-single .paccc-member-details dt {
+	font-family: var(--paccc-heading-font, var(--wp--preset--font-family--heading, inherit));
+	font-weight: var(--paccc-heading-weight, 700);
+	font-style: var(--paccc-heading-style, normal);
+	letter-spacing: var(--paccc-heading-spacing, normal);
+	text-transform: var(--paccc-heading-transform, none);
+	color: #622467;
+}
+
+.paccc-member-single .paccc-member-details dd {
+	color: #444444;
+}
+
 /* Member Number is an internal registry ID, not something a public visitor
    needs first -- de-emphasized rather than removed, since it's still useful
    for e.g. a member cross-checking their own certificate. */
@@ -493,8 +515,22 @@
 	color: #fff;
 }
 
+/* Breadcrumb above the card, so the way back is the first thing on the page
+   rather than something to find below a tall map embed. */
 .paccc-back-link {
-	margin-top: 1.25rem;
+	margin: 0 0 0.85rem;
+	font-size: 0.9em;
+	color: var(--paccc-ink-soft);
+}
+
+.paccc-back-link a {
+	color: var(--paccc-purple);
+	text-decoration: none;
+}
+
+.paccc-back-link a:hover,
+.paccc-back-link a:focus-visible {
+	text-decoration: underline;
 }
 
 /* Business name links to the member's own page */
