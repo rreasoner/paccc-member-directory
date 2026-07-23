@@ -139,7 +139,7 @@ function paccc_md_shortcodes_reference() {
 		),
 		array(
 			'code' => '[paccc_member_business_name]',
-			'desc' => 'The member’s business name as plain text (the [paccc_member] block omits it, since it’s usually the page heading).',
+			'desc' => 'The member’s business name as plain text — for a page heading. Falls back to the member name if no business name is set, so the heading is never empty.',
 		),
 		array(
 			'code' => '[paccc_member_field key="member_name"]',
