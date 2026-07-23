@@ -198,6 +198,12 @@ function paccc_md_render_meta_box( $post ) {
 	$states = paccc_md_states();
 	$certs  = paccc_md_certifications();
 
+	// Certification titles and the certification list are global settings; only
+	// admins may change them (see paccc_md_save_member / paccc_md_ajax_add_cert).
+	// Non-admins still pick which certifications a member holds, but see the
+	// shared titles read-only and don't get the "add certification" control.
+	$can_manage = current_user_can( 'manage_options' );
+
 	wp_nonce_field( 'paccc_md_save_member', 'paccc_md_nonce' );
 	?>
 	<table class="form-table" role="presentation">
@@ -227,7 +233,7 @@ function paccc_md_render_meta_box( $post ) {
 							</label>
 							<input type="text"
 								class="paccc-md-cert-label regular-text"
-								name="paccc_cert_labels[<?php echo esc_attr( $cert ); ?>]"
+								<?php echo $can_manage ? 'name="paccc_cert_labels[' . esc_attr( $cert ) . ']"' : 'readonly'; ?>
 								value="<?php echo esc_attr( isset( $cert_labels[ $cert ] ) ? $cert_labels[ $cert ] : '' ); ?>"
 								placeholder="Full title, e.g. Certified Professional Animal Care Provider" />
 						</div>
@@ -235,17 +241,23 @@ function paccc_md_render_meta_box( $post ) {
 				</div>
 				<p class="description">
 					Full titles appear on the frontend as a legend and as tooltips on each badge.
-					A title belongs to the certification itself, so editing it here updates it for every member.
-					Certifications can be removed under <em>Member Directory &rarr; Settings</em>.
+					<?php if ( $can_manage ) : ?>
+						A title belongs to the certification itself, so editing it here updates it for every member.
+						Certifications can be removed under <em>Member Directory &rarr; Settings</em>.
+					<?php else : ?>
+						Titles are shared across all members and can only be changed by an administrator.
+					<?php endif; ?>
 				</p>
-				<p>
-					<a href="#" id="paccc-md-add-cert-toggle">+ Add a certification</a>
-					<span id="paccc-md-cert-feedback"></span>
-				</p>
-				<p id="paccc-md-add-cert-row" hidden>
-					<input type="text" id="paccc-md-new-cert" class="regular-text" placeholder="e.g. CPACT" />
-					<button type="button" class="button" id="paccc-md-add-cert-btn">Add</button>
-				</p>
+				<?php if ( $can_manage ) : ?>
+					<p>
+						<a href="#" id="paccc-md-add-cert-toggle">+ Add a certification</a>
+						<span id="paccc-md-cert-feedback"></span>
+					</p>
+					<p id="paccc-md-add-cert-row" hidden>
+						<input type="text" id="paccc-md-new-cert" class="regular-text" placeholder="e.g. CPACT" />
+						<button type="button" class="button" id="paccc-md-add-cert-btn">Add</button>
+					</p>
+				<?php endif; ?>
 			</td>
 		</tr>
 		<tr>
@@ -323,8 +335,10 @@ function paccc_md_save_member( $post_id, $post ) {
 	update_post_meta( $post_id, 'paccc_certifications', $selected );
 
 	// Certification titles are shared across all members, so they save to the
-	// global option rather than to this member's meta.
-	if ( isset( $_POST['paccc_cert_labels'] ) && is_array( $_POST['paccc_cert_labels'] ) ) {
+	// global option rather than to this member's meta. That makes them a
+	// site-wide setting: gate the write behind manage_options so a user with
+	// edit access to a single member can't rewrite every member's cert titles.
+	if ( current_user_can( 'manage_options' ) && isset( $_POST['paccc_cert_labels'] ) && is_array( $_POST['paccc_cert_labels'] ) ) {
 		$labels = array();
 		foreach ( wp_unslash( $_POST['paccc_cert_labels'] ) as $abbr => $full ) {
 			$abbr = sanitize_text_field( $abbr );
@@ -344,7 +358,11 @@ add_action( 'save_post', 'paccc_md_save_member', 10, 2 );
 
 function paccc_md_ajax_add_cert() {
 	check_ajax_referer( 'paccc_md_add_cert', 'nonce' );
-	if ( ! current_user_can( 'edit_posts' ) ) {
+	// Adding a certification writes the global paccc_certifications option that
+	// renders on the public frontend, so it takes the same manage_options
+	// capability as deleting one -- not the post-editing cap, which would let a
+	// Contributor inject site-wide config.
+	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_send_json_error( array( 'message' => 'Not allowed.' ) );
 	}
 
