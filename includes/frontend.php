@@ -226,8 +226,11 @@ function paccc_md_shortcode( $atts ) {
 											<?php endforeach; ?>
 										</ul>
 									<?php endif; ?>
+									<div class="paccc-member-actions">
+										<button type="button" class="paccc-view-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel_id ); ?>">Quick view</button>
+										<a class="paccc-member-page-btn" href="<?php echo esc_url( $m->permalink ); ?>">View Member Page</a>
+									</div>
 								</div>
-								<button type="button" class="paccc-view-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel_id ); ?>">Quick view</button>
 							</div>
 							<div class="paccc-member-panel" id="<?php echo esc_attr( $panel_id ); ?>" hidden>
 								<dl class="paccc-member-details">

@@ -52,6 +52,7 @@
 .paccc-directory-panel {
 	background: #fff;
 	padding: 20px;
+	border: 1px solid #000;
 	border-radius: 8px;
 }
 
@@ -177,6 +178,40 @@
 	transition: transform 0.15s ease;
 }
 
+/* Actions row sits under the certification pills (not floated to the far
+   right of the row), so the controls stay visually tied to their member. */
+.paccc-member-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 0.85rem;
+}
+
+/* "View Member Page" -- the primary action -- as a filled purple button, so
+   it reads as more prominent than the white "Quick view" toggle beside it. */
+.paccc-member-page-btn {
+	display: inline-flex;
+	align-items: center;
+	background: #622467;
+	color: #ffedbc;
+	border: 1px solid #622467;
+	border-radius: 4px;
+	padding: 0.4rem 0.9rem;
+	font: inherit;
+	font-size: 0.9em;
+	text-decoration: none;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.paccc-member-page-btn:hover,
+.paccc-member-page-btn:focus-visible {
+	background: #FECA38;
+	color: #622467;
+	text-decoration: none;
+}
+
 .paccc-view-toggle:hover,
 .paccc-view-toggle:focus-visible {
 	background: var(--paccc-accent, #ffe399);
@@ -280,6 +315,7 @@
 	.paccc-view-toggle,
 	.paccc-view-toggle::after,
 	.paccc-linked,
+	.paccc-member-page-btn,
 	.paccc-member-single .paccc-directions {
 		transition: none;
 	}
@@ -405,7 +441,7 @@
 .paccc-legend {
 	margin: 0 0 1.5rem;
 	padding: 1rem 1.25rem;
-	background: #fff;
+	background: #efefef;
 	border: 1px solid #d9d9d9;
 	border-radius: 12px;
 }
@@ -499,15 +535,17 @@
 }
 
 /* One pill definition, used by both the member rows and the legend, so the
-   key visually matches the badges it explains. */
+   key visually matches the badges it explains. Gold fill with deep-purple
+   text: gold is the directory's "interactive / data" color (member states on
+   the map), so the credentials read in that same language. */
 .paccc-cert,
 .paccc-cert-badge {
 	display: inline-block;
 	margin: 0;
 	padding: 0.12rem 0.5rem;
-	background: #622467;
-	color: #ffedbc;
-	border: 1px solid #622467;
+	background: #FECA38;
+	color: #622467;
+	border: 1px solid #FECA38;
 	border-radius: 999px;
 	font-size: 0.75em;
 	font-weight: 700;
