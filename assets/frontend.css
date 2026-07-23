@@ -467,6 +467,14 @@
 	color: #444444;
 }
 
+/* Breathing room under each label/value pair. The row wrappers are
+   display:contents (so dt/dd land directly on the grid), which means there's
+   no row box to pad -- the spacing goes on the cells themselves. */
+.paccc-member-single .paccc-member-details dt,
+.paccc-member-single .paccc-member-details dd {
+	padding-bottom: 5px;
+}
+
 /* Member Number is an internal registry ID, not something a public visitor
    needs first -- de-emphasized rather than removed, since it's still useful
    for e.g. a member cross-checking their own certificate. */
