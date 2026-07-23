@@ -138,6 +138,10 @@ function paccc_md_shortcodes_reference() {
 			'desc' => 'The complete member info block (certifications, address, contact links, map). For a single-member layout in Beaver Themer or any page builder.',
 		),
 		array(
+			'code' => '[paccc_member_business_name]',
+			'desc' => 'The member’s business name as plain text (the [paccc_member] block omits it, since it’s usually the page heading).',
+		),
+		array(
 			'code' => '[paccc_member_field key="member_name"]',
 			'desc' => 'One member field as plain text. Keys: business_name, member_name, member_number, address1, address2, city, state, zip, location, address, website, email, permalink. Add format="name" for the full state name.',
 		),

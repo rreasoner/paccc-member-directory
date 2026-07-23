@@ -536,6 +536,18 @@ function paccc_md_field_shortcode( $atts ) {
 add_shortcode( 'paccc_member_field', 'paccc_md_field_shortcode' );
 
 /**
+ * [paccc_member_business_name] -- the member's business name (the post title)
+ * as plain text. The all-in-one [paccc_member] block omits it (it's normally
+ * the page heading), so this exposes it for a page-builder title element.
+ */
+function paccc_md_business_name_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0 ), $atts, 'paccc_member_business_name' );
+	$m    = paccc_md_shortcode_target( $atts );
+	return $m ? esc_html( $m->business_name ) : '';
+}
+add_shortcode( 'paccc_member_business_name', 'paccc_md_business_name_shortcode' );
+
+/**
  * [paccc_member_certifications] -- the certification pills (same markup as the
  * directory and single-member views), or nothing if the member has none.
  */
