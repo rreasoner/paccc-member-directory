@@ -4,18 +4,18 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 
-		/* ---------- Copy Unique Link buttons ---------- */
+		/* ---------- Copy buttons (unique links + shortcodes) ---------- */
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.paccc-md-copy');
 			if (!btn) {
 				return;
 			}
-			var link = btn.getAttribute('data-link') || '';
-			copyText(link).then(
+			var text = btn.getAttribute('data-clipboard') || btn.getAttribute('data-link') || '';
+			copyText(text).then(
 				function () { flash(btn, 'Copied!'); },
 				function () {
 					flash(btn, 'Copy failed');
-					window.prompt('Copy this link:', link);
+					window.prompt('Copy:', text);
 				}
 			);
 		});
@@ -53,6 +53,30 @@
 				btn.textContent = original;
 				btn.disabled = false;
 			}, 1600);
+		}
+
+		/* ---------- "View Shortcodes" toggle (member list screen) ----------
+		 * The panel is rendered (hidden) by PHP only on the member list screen,
+		 * so the toggle is added next to "Add New Member" only when it exists. */
+		var scPanel = document.getElementById('paccc-md-shortcodes-panel');
+		var titleAction = document.querySelector('.wrap .page-title-action');
+		if (scPanel && titleAction) {
+			var scToggle = document.createElement('a');
+			scToggle.href = '#';
+			scToggle.className = 'page-title-action';
+			scToggle.id = 'paccc-md-shortcodes-toggle';
+			scToggle.textContent = 'View Shortcodes';
+			titleAction.parentNode.insertBefore(scToggle, titleAction.nextSibling);
+
+			scToggle.addEventListener('click', function (e) {
+				e.preventDefault();
+				scPanel.hidden = !scPanel.hidden;
+				scToggle.textContent = scPanel.hidden ? 'View Shortcodes' : 'Hide Shortcodes';
+				scToggle.setAttribute('aria-expanded', scPanel.hidden ? 'false' : 'true');
+				if (!scPanel.hidden) {
+					scPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+			});
 		}
 
 		/* ---------- Delete confirmation ---------- */

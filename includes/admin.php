@@ -119,6 +119,88 @@ function paccc_md_sortable_columns( $columns ) {
 }
 add_filter( 'manage_edit-' . PACCC_MD_CPT . '_sortable_columns', 'paccc_md_sortable_columns' );
 
+/* ---------------------------------------------------------------------------
+ * Shortcodes reference panel (member list screen)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * All shortcodes the plugin registers, with a short description, for the
+ * "View Shortcodes" reference panel.
+ */
+function paccc_md_shortcodes_reference() {
+	return array(
+		array(
+			'code' => '[paccc_directory]',
+			'desc' => 'The full public directory: interactive US map, state and A–Z name filters, and the member list. Put this on your directory page.',
+		),
+		array(
+			'code' => '[paccc_member]',
+			'desc' => 'The complete member info block (certifications, address, contact links, map). For a single-member layout in Beaver Themer or any page builder.',
+		),
+		array(
+			'code' => '[paccc_member_field key="member_name"]',
+			'desc' => 'One member field as plain text. Keys: business_name, member_name, member_number, address1, address2, city, state, zip, location, address, website, email, permalink. Add format="name" for the full state name.',
+		),
+		array(
+			'code' => '[paccc_member_certifications]',
+			'desc' => 'The member’s certification pills.',
+		),
+		array(
+			'code' => '[paccc_member_website]',
+			'desc' => 'The member’s website as a link (nothing if unset). Optional text="Visit site".',
+		),
+		array(
+			'code' => '[paccc_member_email]',
+			'desc' => 'The member’s email as a mailto link (nothing if unset). Optional text="Email us".',
+		),
+		array(
+			'code' => '[paccc_member_directions]',
+			'desc' => 'A “Get Directions” button to Google Maps (nothing if no address). Optional text="Map it".',
+		),
+	);
+}
+
+/**
+ * Render the shortcodes panel (hidden) at the top of the member list screen.
+ * The "View Shortcodes" toggle button is added next to "Add New Member" by
+ * assets/admin.js, which unhides this panel. admin_notices places it directly
+ * below the page title, before the member list.
+ */
+function paccc_md_render_shortcodes_panel() {
+	$screen = get_current_screen();
+	if ( ! $screen || 'edit-' . PACCC_MD_CPT !== $screen->id ) {
+		return;
+	}
+	?>
+	<div id="paccc-md-shortcodes-panel" class="paccc-md-shortcodes" hidden>
+		<h2>Available shortcodes</h2>
+		<p class="description">
+			The <code>[paccc_member…]</code> field shortcodes render the current member, so they belong in a single-member layout (e.g. a Beaver Themer template). Add <code>id="123"</code> to target a specific member anywhere else.
+		</p>
+		<table class="widefat striped paccc-md-shortcodes-table">
+			<thead>
+				<tr>
+					<th scope="col">Shortcode</th>
+					<th scope="col">What it does</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( paccc_md_shortcodes_reference() as $sc ) : ?>
+					<tr>
+						<td class="paccc-md-shortcode-cell">
+							<code><?php echo esc_html( $sc['code'] ); ?></code>
+							<button type="button" class="button button-small paccc-md-copy" data-clipboard="<?php echo esc_attr( $sc['code'] ); ?>">Copy</button>
+						</td>
+						<td><?php echo esc_html( $sc['desc'] ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+	</div>
+	<?php
+}
+add_action( 'admin_notices', 'paccc_md_render_shortcodes_panel' );
+
 /**
  * Translate the custom column sorts into meta queries, and let the admin
  * search box match member number / member name / city as well as the title.

@@ -350,6 +350,18 @@ function paccc_md_single_content( $content ) {
 		return $content;
 	}
 
+	return $content . paccc_md_member_details_html( $m );
+}
+add_filter( 'the_content', 'paccc_md_single_content' );
+
+/**
+ * The full member detail block (certification pills, details list, contact
+ * links, map, and back-to-directory link) as an HTML string. Shared by the
+ * the_content injection above and the [paccc_member] shortcode, so a Beaver
+ * Themer layout (or any page builder) renders exactly what the built-in
+ * single-member template does.
+ */
+function paccc_md_member_details_html( $m ) {
 	paccc_md_enqueue_frontend( false );
 	wp_enqueue_script( 'paccc-md-single', PACCC_MD_URL . 'assets/single.js', array(), PACCC_MD_VERSION, true );
 
@@ -422,9 +434,182 @@ function paccc_md_single_content( $content ) {
 		<?php endif; ?>
 	</div>
 	<?php
-	return $content . ob_get_clean();
+	return ob_get_clean();
 }
-add_filter( 'the_content', 'paccc_md_single_content' );
+
+/**
+ * [paccc_member] -- the full member detail block for a page builder or a
+ * Beaver Themer singular layout. With no attributes it renders the current
+ * member (the queried object on a member page); pass id="123" to target a
+ * specific member post.
+ */
+function paccc_md_member_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0 ), $atts, 'paccc_member' );
+
+	$id = (int) $atts['id'];
+	if ( ! $id ) {
+		$id = (int) get_the_ID();
+	}
+	if ( ! $id ) {
+		$id = (int) get_queried_object_id();
+	}
+
+	$m = paccc_md_get_member( $id );
+	return $m ? paccc_md_member_details_html( $m ) : '';
+}
+add_shortcode( 'paccc_member', 'paccc_md_member_shortcode' );
+
+/**
+ * Resolve the member a field shortcode targets: an explicit id="123" attribute,
+ * else the current member in the loop, else the queried object. Also enqueues
+ * the frontend stylesheet so pills / links / buttons are styled wherever a
+ * field shortcode is dropped. Returns the member object, or null.
+ */
+function paccc_md_shortcode_target( $atts ) {
+	$id = isset( $atts['id'] ) ? (int) $atts['id'] : 0;
+	if ( ! $id ) {
+		$id = (int) get_the_ID();
+	}
+	if ( ! $id ) {
+		$id = (int) get_queried_object_id();
+	}
+
+	$m = paccc_md_get_member( $id );
+	if ( $m ) {
+		paccc_md_enqueue_frontend( false );
+	}
+	return $m;
+}
+
+/**
+ * [paccc_member_field key="member_name"] -- a single member field as plain
+ * text, for placing individual values in separate page-builder modules.
+ *
+ * Keys: business_name, member_name, member_number, address1, address2, city,
+ * state, zip, location, address, website, email, permalink. For state, add
+ * format="name" to output the full state name instead of the 2-letter code.
+ */
+function paccc_md_field_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'key' => '', 'id' => 0, 'format' => '' ), $atts, 'paccc_member_field' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m ) {
+		return '';
+	}
+
+	switch ( sanitize_key( $atts['key'] ) ) {
+		case 'business_name':
+		case 'name':
+			return esc_html( $m->business_name );
+		case 'member_name':
+			return esc_html( $m->member_name );
+		case 'member_number':
+			return esc_html( $m->member_number );
+		case 'address1':
+			return esc_html( $m->address1 );
+		case 'address2':
+			return esc_html( $m->address2 );
+		case 'city':
+			return esc_html( $m->city );
+		case 'zip':
+			return esc_html( $m->zip );
+		case 'state':
+			if ( 'name' === $atts['format'] ) {
+				$states = paccc_md_states();
+				return esc_html( isset( $states[ $m->state ] ) ? $states[ $m->state ] : $m->state );
+			}
+			return esc_html( $m->state );
+		case 'location':
+			return esc_html( trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state ) );
+		case 'address':
+			$lines = paccc_md_address_lines( $m );
+			return $lines ? nl2br( esc_html( implode( "\n", $lines ) ) ) : '';
+		case 'website':
+			return esc_html( $m->website );
+		case 'email':
+			return esc_html( $m->email );
+		case 'permalink':
+		case 'url':
+			return esc_url( $m->permalink );
+	}
+	return '';
+}
+add_shortcode( 'paccc_member_field', 'paccc_md_field_shortcode' );
+
+/**
+ * [paccc_member_certifications] -- the certification pills (same markup as the
+ * directory and single-member views), or nothing if the member has none.
+ */
+function paccc_md_certifications_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0 ), $atts, 'paccc_member_certifications' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m || ! $m->certifications ) {
+		return '';
+	}
+
+	$cert_labels = paccc_md_cert_labels();
+	$out         = '<ul class="paccc-cert-list">';
+	foreach ( $m->certifications as $cert ) {
+		$out .= '<li class="paccc-cert">';
+		if ( isset( $cert_labels[ $cert ] ) ) {
+			$out .= '<abbr title="' . esc_attr( $cert_labels[ $cert ] ) . '">' . esc_html( $cert ) . '</abbr>';
+		} else {
+			$out .= esc_html( $cert );
+		}
+		$out .= '</li>';
+	}
+	$out .= '</ul>';
+	return $out;
+}
+add_shortcode( 'paccc_member_certifications', 'paccc_md_certifications_shortcode' );
+
+/**
+ * [paccc_member_website] -- the member's website as a link (empty if not set).
+ * Link text defaults to the bare domain; override with text="Visit site".
+ */
+function paccc_md_website_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0, 'text' => '' ), $atts, 'paccc_member_website' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m || '' === trim( (string) $m->website ) ) {
+		return '';
+	}
+
+	$text = '' !== $atts['text'] ? $atts['text'] : paccc_md_display_url( $m->website );
+	return '<a class="paccc-member-contact" href="' . esc_url( $m->website ) . '" target="_blank" rel="noopener noreferrer nofollow">' . esc_html( $text ) . '</a>';
+}
+add_shortcode( 'paccc_member_website', 'paccc_md_website_shortcode' );
+
+/**
+ * [paccc_member_email] -- the member's email as a mailto link (empty if unset).
+ */
+function paccc_md_email_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0, 'text' => '' ), $atts, 'paccc_member_email' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m || '' === trim( (string) $m->email ) ) {
+		return '';
+	}
+
+	$text = '' !== $atts['text'] ? $atts['text'] : $m->email;
+	return '<a class="paccc-member-contact" href="' . esc_url( 'mailto:' . $m->email ) . '">' . esc_html( $text ) . '</a>';
+}
+add_shortcode( 'paccc_member_email', 'paccc_md_email_shortcode' );
+
+/**
+ * [paccc_member_directions] -- the "Get Directions" button/link to Google Maps
+ * (empty if the member has no usable address). Override label with text="...".
+ */
+function paccc_md_directions_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0, 'text' => 'Get Directions' ), $atts, 'paccc_member_directions' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m || ! paccc_md_has_address( $m ) ) {
+		return '';
+	}
+
+	$url = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode( paccc_md_map_query( $m ) );
+	return '<a class="paccc-directions" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">'
+		. esc_html( $atts['text'] )
+		. '<span class="screen-reader-text"> to ' . esc_html( $m->business_name ) . ' (opens in a new tab)</span></a>';
+}
+add_shortcode( 'paccc_member_directions', 'paccc_md_directions_shortcode' );
 
 /**
  * Use the plugin's stripped-down single template (no sidebar, no author, no
