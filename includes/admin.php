@@ -287,6 +287,20 @@ function paccc_md_render_meta_box( $post ) {
 			<th scope="row"><label for="paccc_zip">Zip</label></th>
 			<td><input type="text" id="paccc_zip" name="paccc_zip" value="<?php echo esc_attr( $member->zip ); ?>" class="regular-text" /></td>
 		</tr>
+		<tr>
+			<th scope="row"><label for="paccc_website">Website</label></th>
+			<td>
+				<input type="url" id="paccc_website" name="paccc_website" value="<?php echo esc_attr( $member->website ); ?>" class="regular-text" placeholder="https://example.com" />
+				<p class="description">Optional. Include the full URL, e.g. https://example.com.</p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="paccc_email">Email</label></th>
+			<td>
+				<input type="email" id="paccc_email" name="paccc_email" value="<?php echo esc_attr( $member->email ); ?>" class="regular-text" placeholder="name@example.com" />
+				<p class="description">Optional. Shown publicly on the member's listing if provided.</p>
+			</td>
+		</tr>
 	</table>
 	<?php
 }
@@ -324,6 +338,14 @@ function paccc_md_save_member( $post_id, $post ) {
 	update_post_meta( $post_id, 'paccc_address2', isset( $_POST['paccc_address2'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_address2'] ) ) : '' );
 	update_post_meta( $post_id, 'paccc_city', isset( $_POST['paccc_city'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_city'] ) ) : '' );
 	update_post_meta( $post_id, 'paccc_zip', isset( $_POST['paccc_zip'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_zip'] ) ) : '' );
+
+	// Website and email are optional. Store a sanitized URL / a valid email, or
+	// an empty string -- never a malformed value.
+	$website = isset( $_POST['paccc_website'] ) ? esc_url_raw( wp_unslash( $_POST['paccc_website'] ) ) : '';
+	update_post_meta( $post_id, 'paccc_website', $website );
+
+	$email = isset( $_POST['paccc_email'] ) ? sanitize_email( wp_unslash( $_POST['paccc_email'] ) ) : '';
+	update_post_meta( $post_id, 'paccc_email', is_email( $email ) ? $email : '' );
 
 	$states = paccc_md_states();
 	$state  = isset( $_POST['paccc_state'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_state'] ) ) : '';

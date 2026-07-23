@@ -66,6 +66,43 @@ function paccc_md_map_query( $m ) {
 }
 
 /**
+ * Human-friendly form of a website URL for link text: drop the scheme and any
+ * trailing slash so "https://example.com/" reads as "example.com".
+ */
+function paccc_md_display_url( $url ) {
+	return untrailingslashit( preg_replace( '#^https?://#i', '', (string) $url ) );
+}
+
+/**
+ * Website + email rows for a member's detail <dl>. Both are optional, so each
+ * row is emitted only when that field is set. Shared by the directory
+ * quick-view panel and the single member page so they render identically.
+ */
+function paccc_md_render_contact_rows( $m ) {
+	if ( '' !== trim( (string) $m->website ) ) :
+		?>
+		<div>
+			<dt>Website</dt>
+			<dd>
+				<a class="paccc-member-contact" href="<?php echo esc_url( $m->website ); ?>" target="_blank" rel="noopener noreferrer nofollow">
+					<?php echo esc_html( paccc_md_display_url( $m->website ) ); ?><span class="screen-reader-text"> (opens in a new tab)</span>
+				</a>
+			</dd>
+		</div>
+		<?php
+	endif;
+
+	if ( '' !== trim( (string) $m->email ) ) :
+		?>
+		<div>
+			<dt>Email</dt>
+			<dd><a class="paccc-member-contact" href="<?php echo esc_url( 'mailto:' . $m->email ); ?>"><?php echo esc_html( $m->email ); ?></a></dd>
+		</div>
+		<?php
+	endif;
+}
+
+/**
  * Shared asset registration.
  */
 function paccc_md_enqueue_frontend( $with_map = false ) {
@@ -261,6 +298,7 @@ function paccc_md_shortcode( $atts ) {
 											<?php endif; ?>
 										</dd>
 									</div>
+									<?php paccc_md_render_contact_rows( $m ); ?>
 								</dl>
 								<p class="paccc-member-permalink">
 									<a href="<?php echo esc_url( $m->permalink ); ?>">View full member page</a>
@@ -354,6 +392,7 @@ function paccc_md_single_content( $content ) {
 						<?php endif; ?>
 					</dd>
 				</div>
+				<?php paccc_md_render_contact_rows( $m ); ?>
 				<div class="paccc-member-number-row">
 					<dt>Member Number</dt>
 					<dd><?php echo esc_html( $m->member_number ); ?></dd>
@@ -422,6 +461,15 @@ function paccc_md_business_schema( $m ) {
 		'name'  => $m->business_name,
 		'url'   => $m->permalink,
 	);
+
+	// The member's own website (when set) is the same real-world entity as this
+	// listing; sameAs links the two without displacing the permalink as `url`.
+	if ( '' !== trim( (string) $m->website ) ) {
+		$business['sameAs'] = array( $m->website );
+	}
+	if ( '' !== trim( (string) $m->email ) ) {
+		$business['email'] = $m->email;
+	}
 
 	if ( paccc_md_has_address( $m ) ) {
 		$states  = paccc_md_states();

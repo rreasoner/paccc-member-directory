@@ -245,6 +245,13 @@
 	margin: 0;
 }
 
+/* Optional website / email links in the detail list. Word-break so a long
+   URL can't overflow the grid column on narrow screens. */
+.paccc-member-contact {
+	color: #622467;
+	word-break: break-word;
+}
+
 /* "Get Directions" sits under the address lines */
 .paccc-directions {
 	display: inline-block;

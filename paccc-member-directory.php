@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Member Directory
  * Description:       Member directory for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via the [paccc_directory] shortcode.
- * Version:           2.5.0
+ * Version:           2.6.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.5.0' );
+define( 'PACCC_MD_VERSION', '2.6.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -173,6 +173,8 @@ function paccc_md_get_member( $post ) {
 		'city'           => (string) get_post_meta( $post->ID, 'paccc_city', true ),
 		'state'          => (string) get_post_meta( $post->ID, 'paccc_state', true ),
 		'zip'            => (string) get_post_meta( $post->ID, 'paccc_zip', true ),
+		'website'        => (string) get_post_meta( $post->ID, 'paccc_website', true ),
+		'email'          => (string) get_post_meta( $post->ID, 'paccc_email', true ),
 		'permalink'      => get_permalink( $post ),
 	);
 }
