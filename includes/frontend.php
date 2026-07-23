@@ -180,11 +180,11 @@ function paccc_md_shortcode( $atts ) {
 	?>
 	<div class="paccc-directory-wrap">
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
-		<p class="paccc-map-hint">Click a highlighted state to see its members, or use the filter below.</p>
+		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
 
 		<div class="paccc-directory-panel">
 			<div class="paccc-controls">
-				<label for="paccc-state-filter">Filter by state</label>
+				<label for="paccc-state-filter">Browse by state</label>
 				<select id="paccc-state-filter">
 					<option value="">All States</option>
 					<?php foreach ( $states as $code => $name ) : ?>
@@ -195,7 +195,7 @@ function paccc_md_shortcode( $atts ) {
 			</div>
 
 			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of business name">
-				<span class="paccc-alpha-label">Filter by name</span>
+				<span class="paccc-alpha-label">Jump to a letter</span>
 				<button type="button" class="paccc-alpha paccc-alpha-current" data-letter="" aria-pressed="true">All</button>
 				<?php foreach ( range( 'A', 'Z' ) as $letter ) : ?>
 					<button type="button" class="paccc-alpha" data-letter="<?php echo esc_attr( $letter ); ?>" aria-pressed="false"><?php echo esc_html( $letter ); ?></button>
@@ -230,7 +230,7 @@ function paccc_md_shortcode( $atts ) {
 
 			<div class="paccc-members" id="paccc-members">
 				<?php if ( ! $members ) : ?>
-					<p class="paccc-empty">No members found.</p>
+					<p class="paccc-empty">No members in the directory just yet.</p>
 				<?php else : ?>
 					<?php
 					foreach ( $members as $m ) :
@@ -250,6 +250,14 @@ function paccc_md_shortcode( $atts ) {
 						?>
 						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
 							<div class="paccc-member-summary">
+								<?php
+								/*
+								 * Monogram avatar. Decorative only -- the business name sits
+								 * right beside it, so it's hidden from screen readers rather
+								 * than read out as a stray letter.
+								 */
+								?>
+								<span class="paccc-member-avatar" aria-hidden="true"><?php echo esc_html( '#' === $name_letter ? $name_first : $name_letter ); ?></span>
 								<div class="paccc-member-identity">
 									<h3 class="paccc-member-name">
 										<a href="<?php echo esc_url( $m->permalink ); ?>"><?php echo esc_html( $m->business_name ); ?></a>
@@ -439,7 +447,7 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 		</div>
 
 		<?php if ( $dir_link ) : ?>
-			<p class="paccc-back-link"><a href="<?php echo esc_url( $dir_link ); ?>">&laquo; Back to the member directory</a></p>
+			<p class="paccc-back-link"><a href="<?php echo esc_url( $dir_link ); ?>">&laquo; Back to all members</a></p>
 		<?php endif; ?>
 	</div>
 	<?php

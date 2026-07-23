@@ -117,7 +117,9 @@
 						zoomOnScroll: false,
 						draggable: false,
 						regionStyle: {
-							initial: { fill: '#ffffff', stroke: '#000000', strokeWidth: 0.6 },
+							/* Warm taupe borders rather than pure black -- hard black
+							 * state outlines were the map's biggest "corporate" tell. */
+							initial: { fill: '#ffffff', stroke: '#BFAE9C', strokeWidth: 0.8 },
 							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR },
 							selected: { cursor: PACCC_PAW_CURSOR },
 							selectedHover: { cursor: PACCC_PAW_CURSOR }
@@ -146,7 +148,7 @@
 								fontFamily: data.fontFamily ? '"' + data.fontFamily + '", inherit' : 'inherit',
 								fontSize: '9px',
 								fontWeight: data.fontWeight || '500',
-								fill: '#000000',
+								fill: '#4A3550',
 								cursor: PACCC_PAW_CURSOR
 							},
 							hover: {
@@ -274,7 +276,7 @@
 			var startingWith = currentLetter ? ' starting with ' + currentLetter : '';
 			var qualifier = where + startingWith;
 			if (!total) {
-				statusEl.textContent = 'No members found' + qualifier + '.';
+				statusEl.textContent = 'No members' + qualifier + ' just yet.';
 				return;
 			}
 			statusEl.textContent = 'Showing ' + (start + 1) + '\u2013' + end +
