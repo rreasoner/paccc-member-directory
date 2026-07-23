@@ -79,6 +79,54 @@
 	max-width: 100%;
 }
 
+/* A-Z name filter: sits on its own line under the state dropdown. Buttons
+   wrap on narrow screens and are sized as comfortable touch targets. */
+.paccc-alpha-filter {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.3rem;
+	margin: 0 0 0.75rem;
+}
+
+.paccc-alpha-label {
+	font-weight: 700;
+	margin-right: 0.25rem;
+}
+
+.paccc-alpha {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 40px;
+	min-height: 40px;
+	padding: 0.3rem 0.4rem;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1;
+	color: #000;
+	background: #fff;
+	border: 1px solid #000;
+	border-radius: 4px;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.paccc-alpha:hover,
+.paccc-alpha:focus-visible {
+	background: var(--paccc-accent, #ffe399);
+}
+
+/* Active letter: filled purple, and it keeps that fill on hover so the
+   selection stays obvious. */
+.paccc-alpha-current,
+.paccc-alpha-current:hover,
+.paccc-alpha-current:focus-visible {
+	background: #622467;
+	color: #fff;
+	border-color: #622467;
+}
+
 .paccc-status {
 	margin: 0 0 1rem;
 	font-size: 0.95em;
@@ -325,6 +373,7 @@
 	.paccc-view-toggle::after,
 	.paccc-linked,
 	.paccc-member-page-btn,
+	.paccc-alpha,
 	.paccc-member-single .paccc-directions {
 		transition: none;
 	}

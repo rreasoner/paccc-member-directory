@@ -194,6 +194,14 @@ function paccc_md_shortcode( $atts ) {
 				</select>
 			</div>
 
+			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of business name">
+				<span class="paccc-alpha-label">Filter by name</span>
+				<button type="button" class="paccc-alpha paccc-alpha-current" data-letter="" aria-pressed="true">All</button>
+				<?php foreach ( range( 'A', 'Z' ) as $letter ) : ?>
+					<button type="button" class="paccc-alpha" data-letter="<?php echo esc_attr( $letter ); ?>" aria-pressed="false"><?php echo esc_html( $letter ); ?></button>
+				<?php endforeach; ?>
+			</div>
+
 			<p class="paccc-status" role="status" aria-live="polite"></p>
 
 			<?php
@@ -235,8 +243,12 @@ function paccc_md_shortcode( $atts ) {
 						<?php
 						$cert_labels = paccc_md_cert_labels();
 						$location    = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
+						// Bucket for the A-Z name filter: first letter of the business
+						// name, uppercased; anything not A-Z (numbers, symbols) is "#".
+						$name_first  = strtoupper( substr( remove_accents( trim( (string) $m->business_name ) ), 0, 1 ) );
+						$name_letter = ( $name_first >= 'A' && $name_first <= 'Z' ) ? $name_first : '#';
 						?>
-						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>">
+						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
 							<div class="paccc-member-summary">
 								<div class="paccc-member-identity">
 									<h3 class="paccc-member-name">

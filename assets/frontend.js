@@ -220,15 +220,23 @@
 		var pager = document.querySelector('.paccc-pagination');
 		var listEl = document.getElementById('paccc-members');
 
+		var alphaButtons = Array.prototype.slice.call(document.querySelectorAll('.paccc-alpha'));
+
 		var currentState = '';
+		var currentLetter = '';
 		var currentPage = 1;
 
+		// A row shows only if it matches BOTH the active state and the active
+		// letter. Empty currentState / currentLetter mean "no restriction".
 		function matchingRows() {
-			if (!currentState) {
-				return rows;
-			}
 			return rows.filter(function (r) {
-				return r.getAttribute('data-state') === currentState;
+				if (currentState && r.getAttribute('data-state') !== currentState) {
+					return false;
+				}
+				if (currentLetter && r.getAttribute('data-letter') !== currentLetter) {
+					return false;
+				}
+				return true;
 			});
 		}
 
@@ -263,12 +271,14 @@
 				return;
 			}
 			var where = currentState ? ' in ' + (names[currentState] || currentState) : '';
+			var startingWith = currentLetter ? ' starting with ' + currentLetter : '';
+			var qualifier = where + startingWith;
 			if (!total) {
-				statusEl.textContent = 'No members found' + where + '.';
+				statusEl.textContent = 'No members found' + qualifier + '.';
 				return;
 			}
 			statusEl.textContent = 'Showing ' + (start + 1) + '\u2013' + end +
-				' of ' + total + ' member' + (total === 1 ? '' : 's') + where + '.';
+				' of ' + total + ' member' + (total === 1 ? '' : 's') + qualifier + '.';
 		}
 
 		function renderPager(pages) {
@@ -354,6 +364,25 @@
 				setState(select.value, false);
 			});
 		}
+
+		// A-Z name filter. Highlights the active letter and re-renders; combines
+		// with the state filter (both must match).
+		function setLetter(letter) {
+			currentLetter = letter || '';
+			currentPage = 1;
+			alphaButtons.forEach(function (b) {
+				var active = (b.getAttribute('data-letter') || '') === currentLetter;
+				b.classList.toggle('paccc-alpha-current', active);
+				b.setAttribute('aria-pressed', active ? 'true' : 'false');
+			});
+			render();
+		}
+
+		alphaButtons.forEach(function (b) {
+			b.addEventListener('click', function () {
+				setLetter(b.getAttribute('data-letter') || '');
+			});
+		});
 
 		render();
 
