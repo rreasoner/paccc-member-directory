@@ -141,6 +141,7 @@
 	align-items: center;
 	gap: 0.5rem 0.75rem;
 	margin: 0 0 0.75rem;
+	padding-bottom: 8px;
 }
 
 .paccc-controls label {
@@ -192,6 +193,7 @@
 	align-items: center;
 	gap: 0.3rem;
 	margin: 0 0 0.75rem;
+	padding-bottom: 8px;
 }
 
 .paccc-alpha-label {
@@ -236,6 +238,7 @@
 .paccc-status {
 	margin: 0 0 1rem;
 	font-size: 0.95em;
+	padding-bottom: 8px;
 }
 
 /* Pagination */
