@@ -226,6 +226,7 @@
 		var stateHeadingEl = document.querySelector('.paccc-state-heading');
 		var stateIntroEl = document.querySelector('.paccc-state-intro');
 		var viewStateBtn = document.querySelector('.paccc-view-state');
+		var liveStateSpans = Array.prototype.slice.call(document.querySelectorAll('.paccc-live-state'));
 
 		// Per-state URLs (e.g. /paccc-certified-members/texas/). slugs maps code->slug;
 		// codeBySlug is the reverse, for reading a state back out of the URL.
@@ -272,8 +273,23 @@
 			}
 		}
 
-		// State intro sentence, mirrored client-side from the server template so
-		// it stays in step as the visitor filters.
+		// Text builders, kept in sync with the PHP equivalents so client-side
+		// updates read identically to the server render.
+		function stateTitleText(code) {
+			return 'PACCC Certified Members in ' + (names[code] || code);
+		}
+
+		function stateIntroText(code) {
+			var n = counts[code] || 0;
+			var name = names[code] || code;
+			if (n < 1) {
+				return 'There are no PACCC-certified members in ' + name + ' yet.';
+			}
+			return (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
+		}
+
+		// State intro sentence (the directory's own element), mirrored so it
+		// stays in step as the visitor filters.
 		function updateStateIntro(code) {
 			if (!stateIntroEl) {
 				return;
@@ -283,16 +299,29 @@
 				stateIntroEl.hidden = true;
 				return;
 			}
-			var n = counts[code] || 0;
-			var name = names[code] || code;
-			var text;
-			if (n < 1) {
-				text = 'There are no PACCC-certified members in ' + name + ' yet.';
-			} else {
-				text = (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
-			}
-			stateIntroEl.textContent = text;
+			stateIntroEl.textContent = stateIntroText(code);
 			stateIntroEl.hidden = false;
+		}
+
+		// Custom [paccc_current_state*] spans placed by a page builder: keep
+		// them in step with client-side filtering too. Each carries data-kind
+		// (name|title|intro) and a data-default for the no-state case.
+		function updateLiveStateSpans(code) {
+			if (!liveStateSpans.length) {
+				return;
+			}
+			liveStateSpans.forEach(function (el) {
+				var kind = el.getAttribute('data-kind') || 'name';
+				if (!code) {
+					el.textContent = el.getAttribute('data-default') || '';
+				} else if (kind === 'title') {
+					el.textContent = stateTitleText(code);
+				} else if (kind === 'intro') {
+					el.textContent = stateIntroText(code);
+				} else {
+					el.textContent = names[code] || code;
+				}
+			});
 		}
 
 		// "View State Page" links to the selected state's own URL; hidden when
@@ -437,6 +466,7 @@
 			}
 			updateStateHeading(currentState);
 			updateStateIntro(currentState);
+			updateLiveStateSpans(currentState);
 			updateViewStateBtn(currentState);
 			if (pushUrl) {
 				pushStateUrl(currentState);
@@ -504,6 +534,7 @@
 		}
 		updateStateHeading(currentState);
 		updateStateIntro(currentState);
+		updateLiveStateSpans(currentState);
 		updateViewStateBtn(currentState);
 		render();
 

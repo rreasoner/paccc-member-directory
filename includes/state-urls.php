@@ -324,11 +324,22 @@ function paccc_md_state_intro_text( $code, $count = null ) {
  * state on its own). All resolve the state from the current URL and fall back
  * to the optional default="" when there's no state (the unfiltered page).
  *
- * Note: these render server-side from the URL, so they're correct on load but
- * won't change if the visitor filters client-side. The directory shortcode's
- * own built-in heading does live-update; use heading="0" on [paccc_directory]
- * to hide it when you build your own with these.
+ * Output is wrapped in a <span class="paccc-live-state"> so that when the
+ * directory shortcode is on the same page, frontend.js updates it live as the
+ * visitor filters (matching the built-in heading's behavior). The server still
+ * renders the correct value from the URL, so it's right on load regardless.
+ * Use heading="0" on [paccc_directory] to hide its built-in heading when you
+ * build your own with these.
  * ------------------------------------------------------------------------ */
+
+/**
+ * A state value wrapped for live client-side updates. $kind (name|title|intro)
+ * tells frontend.js how to rebuild it; $default is shown when no state is set.
+ */
+function paccc_md_live_state_span( $kind, $value, $default ) {
+	return '<span class="paccc-live-state" data-kind="' . esc_attr( $kind ) . '"'
+		. ' data-default="' . esc_attr( $default ) . '">' . esc_html( $value ) . '</span>';
+}
 
 /**
  * [paccc_current_state] -- the current state's name, e.g. "Texas".
@@ -337,10 +348,8 @@ function paccc_md_current_state_shortcode( $atts ) {
 	$atts   = shortcode_atts( array( 'default' => '' ), $atts, 'paccc_current_state' );
 	$code   = paccc_md_current_state_code();
 	$states = paccc_md_states();
-	if ( ! $code || ! isset( $states[ $code ] ) ) {
-		return esc_html( $atts['default'] );
-	}
-	return esc_html( $states[ $code ] );
+	$value  = ( $code && isset( $states[ $code ] ) ) ? $states[ $code ] : $atts['default'];
+	return paccc_md_live_state_span( 'name', $value, $atts['default'] );
 }
 add_shortcode( 'paccc_current_state', 'paccc_md_current_state_shortcode' );
 
@@ -348,12 +357,10 @@ add_shortcode( 'paccc_current_state', 'paccc_md_current_state_shortcode' );
  * [paccc_current_state_title] -- "PACCC Certified Members in Texas".
  */
 function paccc_md_current_state_title_shortcode( $atts ) {
-	$atts = shortcode_atts( array( 'default' => 'PACCC Certified Members' ), $atts, 'paccc_current_state_title' );
-	$code = paccc_md_current_state_code();
-	if ( ! $code ) {
-		return esc_html( $atts['default'] );
-	}
-	return esc_html( paccc_md_state_title_text( $code ) );
+	$atts  = shortcode_atts( array( 'default' => 'PACCC Certified Members' ), $atts, 'paccc_current_state_title' );
+	$code  = paccc_md_current_state_code();
+	$value = $code ? paccc_md_state_title_text( $code ) : $atts['default'];
+	return paccc_md_live_state_span( 'title', $value, $atts['default'] );
 }
 add_shortcode( 'paccc_current_state_title', 'paccc_md_current_state_title_shortcode' );
 
@@ -361,12 +368,10 @@ add_shortcode( 'paccc_current_state_title', 'paccc_md_current_state_title_shortc
  * [paccc_current_state_intro] -- the state's intro sentence.
  */
 function paccc_md_current_state_intro_shortcode( $atts ) {
-	$atts = shortcode_atts( array( 'default' => '' ), $atts, 'paccc_current_state_intro' );
-	$code = paccc_md_current_state_code();
-	if ( ! $code ) {
-		return esc_html( $atts['default'] );
-	}
-	return esc_html( paccc_md_state_intro_text( $code ) );
+	$atts  = shortcode_atts( array( 'default' => '' ), $atts, 'paccc_current_state_intro' );
+	$code  = paccc_md_current_state_code();
+	$value = $code ? paccc_md_state_intro_text( $code ) : $atts['default'];
+	return paccc_md_live_state_span( 'intro', $value, $atts['default'] );
 }
 add_shortcode( 'paccc_current_state_intro', 'paccc_md_current_state_intro_shortcode' );
 
