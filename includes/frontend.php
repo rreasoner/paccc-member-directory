@@ -134,10 +134,13 @@ function paccc_md_enqueue_frontend( $with_map = false ) {
  * ------------------------------------------------------------------------ */
 
 function paccc_md_shortcode( $atts ) {
-	// heading="0" hides the built-in state heading + intro, for when a page
-	// builder / Themer layout supplies its own via [paccc_current_state_*].
-	$atts               = shortcode_atts( array( 'heading' => '1' ), $atts, 'paccc_directory' );
-	$show_state_heading = ! in_array( strtolower( trim( (string) $atts['heading'] ) ), array( '0', 'false', 'no' ), true );
+	// heading="0" / intro="0" hide the built-in heading and/or intro sentence,
+	// independently -- e.g. a Themer layout with its own H1 can drop the
+	// duplicate heading (heading="0") while keeping the intro sentence.
+	$atts         = shortcode_atts( array( 'heading' => '1', 'intro' => '1' ), $atts, 'paccc_directory' );
+	$paccc_falsey = array( '0', 'false', 'no' );
+	$show_heading = ! in_array( strtolower( trim( (string) $atts['heading'] ) ), $paccc_falsey, true );
+	$show_intro   = ! in_array( strtolower( trim( (string) $atts['intro'] ) ), $paccc_falsey, true );
 
 	// Record the page hosting the shortcode (used for the back-link on
 	// member pages) unless one has been chosen manually.
@@ -199,15 +202,20 @@ function paccc_md_shortcode( $atts ) {
 		 * ("...in Texas") for distinct, crawlable content; on the unfiltered
 		 * directory they fall back to a generic heading and the total member
 		 * count. frontend.js keeps them in step as the visitor filters.
-		 * Suppressed with heading="0" when a page builder supplies its own.
+		 * heading="0"/intro="0" drop either independently when a page builder
+		 * supplies its own.
 		 */
-		if ( $show_state_heading ) :
+		if ( $show_heading ) :
 			$paccc_heading_text = $active_state ? paccc_md_state_title_text( $active_state ) : paccc_md_directory_heading_text();
-			$paccc_intro_text   = $active_state
+			?>
+			<h2 class="paccc-state-heading"><?php echo esc_html( $paccc_heading_text ); ?></h2>
+			<?php
+		endif;
+		if ( $show_intro ) :
+			$paccc_intro_text = $active_state
 				? paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 )
 				: paccc_md_all_members_intro_text( count( $members ) );
 			?>
-			<h2 class="paccc-state-heading"><?php echo esc_html( $paccc_heading_text ); ?></h2>
 			<p class="paccc-state-intro"><?php echo esc_html( $paccc_intro_text ); ?></p>
 			<?php
 		endif;
