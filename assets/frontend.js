@@ -224,6 +224,7 @@
 
 		var alphaButtons = Array.prototype.slice.call(document.querySelectorAll('.paccc-alpha'));
 		var stateHeadingEl = document.querySelector('.paccc-state-heading');
+		var viewStateBtn = document.querySelector('.paccc-view-state');
 
 		// Per-state URLs (e.g. /find-a-member/texas/). slugs maps code->slug;
 		// codeBySlug is the reverse, for reading a state back out of the URL.
@@ -267,6 +268,21 @@
 			} else {
 				stateHeadingEl.textContent = '';
 				stateHeadingEl.hidden = true;
+			}
+		}
+
+		// "View State Page" links to the selected state's own URL; hidden when
+		// no state (or no routing) is active.
+		function updateViewStateBtn(code) {
+			if (!viewStateBtn) {
+				return;
+			}
+			var url = code ? stateUrl(code) : '';
+			if (url && code) {
+				viewStateBtn.setAttribute('href', url);
+				viewStateBtn.hidden = false;
+			} else {
+				viewStateBtn.hidden = true;
 			}
 		}
 
@@ -396,6 +412,7 @@
 				select.value = currentState;
 			}
 			updateStateHeading(currentState);
+			updateViewStateBtn(currentState);
 			if (pushUrl) {
 				pushStateUrl(currentState);
 			}
@@ -461,6 +478,7 @@
 			select.value = currentState;
 		}
 		updateStateHeading(currentState);
+		updateViewStateBtn(currentState);
 		render();
 
 		/* ---------- "View Member" accordions ---------- */

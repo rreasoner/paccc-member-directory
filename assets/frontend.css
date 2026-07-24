@@ -108,6 +108,33 @@
 	max-width: 100%;
 }
 
+/* Link to the selected state's own page, beside the dropdown. Filled purple
+   pill so it reads as the primary action once a state is chosen. */
+.paccc-view-state {
+	display: inline-flex;
+	align-items: center;
+	background: var(--paccc-purple);
+	color: var(--paccc-gold-pale);
+	border: 1px solid var(--paccc-purple);
+	border-radius: 999px;
+	padding: 0.45rem 0.95rem;
+	font-size: 0.9em;
+	text-decoration: none;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.paccc-view-state:hover,
+.paccc-view-state:focus-visible {
+	background: var(--paccc-gold);
+	color: var(--paccc-purple);
+	text-decoration: none;
+}
+
+.paccc-view-state[hidden] {
+	display: none;
+}
+
 /* A-Z name filter: sits on its own line under the state dropdown. Buttons
    wrap on narrow screens and are sized as comfortable touch targets. */
 .paccc-alpha-filter {
@@ -425,6 +452,7 @@
 	.paccc-view-toggle::after,
 	.paccc-linked,
 	.paccc-member-page-btn,
+	.paccc-view-state,
 	.paccc-alpha,
 	.paccc-member-single .paccc-directions {
 		transition: none;

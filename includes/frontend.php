@@ -213,6 +213,16 @@ function paccc_md_shortcode( $atts ) {
 						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $active_state, $code ); ?>><?php echo esc_html( $count ? $name . ' (' . $count . ')' : $name ); ?></option>
 					<?php endforeach; ?>
 				</select>
+				<?php
+				/*
+				 * Link to the selected state's own URL (/find-a-member/texas/).
+				 * The dropdown already updates the address bar via the History
+				 * API, but this is the visible affordance for landing on -- and
+				 * sharing -- the dedicated, indexable state page. Shown only when
+				 * a state is active; frontend.js keeps its href/visibility synced.
+				 */
+				?>
+				<a class="paccc-view-state" href="<?php echo $active_state ? esc_url( paccc_md_state_url( $active_state ) ) : '#'; ?>"<?php echo $active_state ? '' : ' hidden'; ?>>View State Page</a>
 			</div>
 
 			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of business name">
