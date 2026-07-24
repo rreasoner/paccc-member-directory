@@ -319,6 +319,58 @@ function paccc_md_state_intro_text( $code, $count = null ) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Current-state shortcodes -- for building a custom state-aware header in a
+ * page builder / Beaver Themer layout (a Heading module can't read the URL's
+ * state on its own). All resolve the state from the current URL and fall back
+ * to the optional default="" when there's no state (the unfiltered page).
+ *
+ * Note: these render server-side from the URL, so they're correct on load but
+ * won't change if the visitor filters client-side. The directory shortcode's
+ * own built-in heading does live-update; use heading="0" on [paccc_directory]
+ * to hide it when you build your own with these.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * [paccc_current_state] -- the current state's name, e.g. "Texas".
+ */
+function paccc_md_current_state_shortcode( $atts ) {
+	$atts   = shortcode_atts( array( 'default' => '' ), $atts, 'paccc_current_state' );
+	$code   = paccc_md_current_state_code();
+	$states = paccc_md_states();
+	if ( ! $code || ! isset( $states[ $code ] ) ) {
+		return esc_html( $atts['default'] );
+	}
+	return esc_html( $states[ $code ] );
+}
+add_shortcode( 'paccc_current_state', 'paccc_md_current_state_shortcode' );
+
+/**
+ * [paccc_current_state_title] -- "PACCC Certified Members in Texas".
+ */
+function paccc_md_current_state_title_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'default' => 'PACCC Certified Members' ), $atts, 'paccc_current_state_title' );
+	$code = paccc_md_current_state_code();
+	if ( ! $code ) {
+		return esc_html( $atts['default'] );
+	}
+	return esc_html( paccc_md_state_title_text( $code ) );
+}
+add_shortcode( 'paccc_current_state_title', 'paccc_md_current_state_title_shortcode' );
+
+/**
+ * [paccc_current_state_intro] -- the state's intro sentence.
+ */
+function paccc_md_current_state_intro_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'default' => '' ), $atts, 'paccc_current_state_intro' );
+	$code = paccc_md_current_state_code();
+	if ( ! $code ) {
+		return esc_html( $atts['default'] );
+	}
+	return esc_html( paccc_md_state_intro_text( $code ) );
+}
+add_shortcode( 'paccc_current_state_intro', 'paccc_md_current_state_intro_shortcode' );
+
+/* ---------------------------------------------------------------------------
  * XML sitemap: list the per-state URLs so search engines discover them
  * (they're virtual routes, not posts/terms, so they aren't included
  * automatically). Yoast path when Yoast is active; WordPress core sitemaps

@@ -134,6 +134,11 @@ function paccc_md_enqueue_frontend( $with_map = false ) {
  * ------------------------------------------------------------------------ */
 
 function paccc_md_shortcode( $atts ) {
+	// heading="0" hides the built-in state heading + intro, for when a page
+	// builder / Themer layout supplies its own via [paccc_current_state_*].
+	$atts               = shortcode_atts( array( 'heading' => '1' ), $atts, 'paccc_directory' );
+	$show_state_heading = ! in_array( strtolower( trim( (string) $atts['heading'] ) ), array( '0', 'false', 'no' ), true );
+
 	// Record the page hosting the shortcode (used for the back-link on
 	// member pages) unless one has been chosen manually.
 	if ( ! (int) get_option( 'paccc_directory_page_id' ) && is_singular() && get_the_ID() ) {
@@ -196,12 +201,14 @@ function paccc_md_shortcode( $atts ) {
 		 * changes the filter.
 		 */
 		?>
-		<h2 class="paccc-state-heading"<?php echo $active_state ? '' : ' hidden'; ?>>
-			<?php echo $active_state ? esc_html( paccc_md_state_title_text( $active_state ) ) : ''; ?>
-		</h2>
-		<p class="paccc-state-intro"<?php echo $active_state ? '' : ' hidden'; ?>>
-			<?php echo $active_state ? esc_html( paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 ) ) : ''; ?>
-		</p>
+		<?php if ( $show_state_heading ) : ?>
+			<h2 class="paccc-state-heading"<?php echo $active_state ? '' : ' hidden'; ?>>
+				<?php echo $active_state ? esc_html( paccc_md_state_title_text( $active_state ) ) : ''; ?>
+			</h2>
+			<p class="paccc-state-intro"<?php echo $active_state ? '' : ' hidden'; ?>>
+				<?php echo $active_state ? esc_html( paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 ) ) : ''; ?>
+			</p>
+		<?php endif; ?>
 
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
