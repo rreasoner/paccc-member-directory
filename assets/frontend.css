@@ -49,10 +49,17 @@
 	display: none;
 }
 
+/* Prominent intro line. Borrows the theme's heading font (published at runtime
+   by frontend.js as --paccc-heading-font / --paccc-heading-weight, so it tracks
+   any later theme font change) rather than the body font. */
 .paccc-state-intro {
-	margin: -0.5rem 0 1.5rem;
+	margin: -0.25rem 0 1.5rem;
 	text-align: center;
-	color: var(--paccc-ink-soft);
+	color: var(--paccc-ink);
+	font-family: var(--paccc-heading-font, var(--wp--preset--font-family--heading, inherit));
+	font-weight: var(--paccc-heading-weight, 600);
+	font-size: 1.25em;
+	line-height: 1.3;
 }
 
 .paccc-state-intro[hidden] {

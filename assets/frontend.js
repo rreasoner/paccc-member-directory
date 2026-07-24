@@ -22,6 +22,32 @@
 		var names = data.names || {};
 		var highlight = data.highlight || '#ffe399';
 
+		/* Publish the theme's heading font so the state intro (a <p>) can adopt
+		 * it -- CSS can't inherit another element's font-family, and every theme
+		 * defines its headings differently. Measure a real hidden <h2> and set
+		 * the values as custom properties the stylesheet reads. If the theme's
+		 * heading font changes later, this picks it up automatically. */
+		(function () {
+			var wrap = document.querySelector('.paccc-directory-wrap');
+			if (!wrap) {
+				return;
+			}
+			var probe = document.createElement('h2');
+			probe.setAttribute('aria-hidden', 'true');
+			probe.style.cssText = 'position:absolute;visibility:hidden;height:0;margin:0;padding:0;overflow:hidden;';
+			wrap.appendChild(probe);
+			try {
+				var cs = window.getComputedStyle(probe);
+				if (cs.fontFamily) {
+					wrap.style.setProperty('--paccc-heading-font', cs.fontFamily);
+				}
+				if (cs.fontWeight) {
+					wrap.style.setProperty('--paccc-heading-weight', cs.fontWeight);
+				}
+			} catch (e) { /* fall back to the stylesheet default */ }
+			wrap.removeChild(probe);
+		})();
+
 		/* ---------- US map ----------
 		 * The map is hidden by CSS at <=1000px. Building it while the
 		 * container is display:none gives getBBox() zeros and mangles every
