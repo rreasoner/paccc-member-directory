@@ -195,20 +195,23 @@ function paccc_md_shortcode( $atts ) {
 	<div class="paccc-directory-wrap">
 		<?php
 		/*
-		 * State heading, server-rendered when the URL targets a state so the
-		 * page has distinct, crawlable content ("...in Texas"). Hidden on the
-		 * unfiltered directory; frontend.js shows/updates it as the visitor
-		 * changes the filter.
+		 * Directory heading + intro. On a state URL these are state-specific
+		 * ("...in Texas") for distinct, crawlable content; on the unfiltered
+		 * directory they fall back to a generic heading and the total member
+		 * count. frontend.js keeps them in step as the visitor filters.
+		 * Suppressed with heading="0" when a page builder supplies its own.
 		 */
+		if ( $show_state_heading ) :
+			$paccc_heading_text = $active_state ? paccc_md_state_title_text( $active_state ) : paccc_md_directory_heading_text();
+			$paccc_intro_text   = $active_state
+				? paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 )
+				: paccc_md_all_members_intro_text( count( $members ) );
+			?>
+			<h2 class="paccc-state-heading"><?php echo esc_html( $paccc_heading_text ); ?></h2>
+			<p class="paccc-state-intro"><?php echo esc_html( $paccc_intro_text ); ?></p>
+			<?php
+		endif;
 		?>
-		<?php if ( $show_state_heading ) : ?>
-			<h2 class="paccc-state-heading"<?php echo $active_state ? '' : ' hidden'; ?>>
-				<?php echo $active_state ? esc_html( paccc_md_state_title_text( $active_state ) ) : ''; ?>
-			</h2>
-			<p class="paccc-state-intro"<?php echo $active_state ? '' : ' hidden'; ?>>
-				<?php echo $active_state ? esc_html( paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 ) ) : ''; ?>
-			</p>
-		<?php endif; ?>
 
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>

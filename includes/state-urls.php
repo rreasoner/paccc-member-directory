@@ -318,6 +318,34 @@ function paccc_md_state_intro_text( $code, $count = null ) {
 	);
 }
 
+/**
+ * Default heading for the unfiltered directory (no state selected). Filterable
+ * so it can be overridden without editing the plugin.
+ */
+function paccc_md_directory_heading_text() {
+	return apply_filters( 'paccc_md_directory_heading', 'PACCC Members by State' );
+}
+
+/**
+ * Intro sentence for the unfiltered directory: the total member count across
+ * every state.
+ */
+function paccc_md_all_members_intro_text( $total ) {
+	if ( $total < 1 ) {
+		return 'There are no PACCC-certified members yet.';
+	}
+	return sprintf(
+		/* translators: %d: total member count */
+		_n(
+			'There is %d PACCC-certified member.',
+			'There are %d PACCC-certified members.',
+			$total,
+			'paccc-member-directory'
+		),
+		$total
+	);
+}
+
 /* ---------------------------------------------------------------------------
  * Current-state shortcodes -- for building a custom state-aware header in a
  * page builder / Beaver Themer layout (a Heading module can't read the URL's

@@ -264,13 +264,10 @@
 			if (!stateHeadingEl) {
 				return;
 			}
-			if (code) {
-				stateHeadingEl.textContent = 'PACCC Certified Members in ' + (names[code] || code);
-				stateHeadingEl.hidden = false;
-			} else {
-				stateHeadingEl.textContent = '';
-				stateHeadingEl.hidden = true;
-			}
+			// Generic heading on the unfiltered directory; state-specific once
+			// a state is active. Always visible (never hidden) now.
+			stateHeadingEl.textContent = code ? stateTitleText(code) : 'PACCC Members by State';
+			stateHeadingEl.hidden = false;
 		}
 
 		// Text builders, kept in sync with the PHP equivalents so client-side
@@ -288,18 +285,23 @@
 			return (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
 		}
 
+		// Total across every state, for the unfiltered directory. rows is the
+		// full set of member articles in the DOM.
+		function allMembersIntroText() {
+			var total = rows.length;
+			if (total < 1) {
+				return 'There are no PACCC-certified members yet.';
+			}
+			return total === 1 ? 'There is 1 PACCC-certified member.' : 'There are ' + total + ' PACCC-certified members.';
+		}
+
 		// State intro sentence (the directory's own element), mirrored so it
 		// stays in step as the visitor filters.
 		function updateStateIntro(code) {
 			if (!stateIntroEl) {
 				return;
 			}
-			if (!code) {
-				stateIntroEl.textContent = '';
-				stateIntroEl.hidden = true;
-				return;
-			}
-			stateIntroEl.textContent = stateIntroText(code);
+			stateIntroEl.textContent = code ? stateIntroText(code) : allMembersIntroText();
 			stateIntroEl.hidden = false;
 		}
 
