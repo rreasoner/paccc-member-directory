@@ -289,7 +289,7 @@
 			if (n < 1) {
 				text = 'There are no PACCC-certified members in ' + name + ' yet.';
 			} else {
-				text = (n === 1 ? 'There is 1 PACCC-certified professional animal care provider in ' : 'There are ' + n + ' PACCC-certified professional animal care providers in ') + name + '.';
+				text = (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
 			}
 			stateIntroEl.textContent = text;
 			stateIntroEl.hidden = false;

@@ -179,7 +179,7 @@ function paccc_md_state_title_text( $code ) {
 function paccc_md_state_desc_text( $code ) {
 	$states = paccc_md_states();
 	return sprintf(
-		'Find PACCC-certified professional animal care providers in %s. Browse certified members of the Professional Animal Care Certification Council.',
+		'Find PACCC-certified members in %s -- professional animal care businesses certified by the Professional Animal Care Certification Council.',
 		$states[ $code ]
 	);
 }
@@ -308,8 +308,8 @@ function paccc_md_state_intro_text( $code, $count = null ) {
 	return sprintf(
 		/* translators: 1: member count, 2: state name */
 		_n(
-			'There is %1$d PACCC-certified professional animal care provider in %2$s.',
-			'There are %1$d PACCC-certified professional animal care providers in %2$s.',
+			'There is %1$d PACCC-certified member in %2$s.',
+			'There are %1$d PACCC-certified members in %2$s.',
 			$count,
 			'paccc-member-directory'
 		),
