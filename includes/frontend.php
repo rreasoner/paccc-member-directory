@@ -152,17 +152,26 @@ function paccc_md_shortcode( $atts ) {
 
 	$map_settings = paccc_md_enqueue_frontend( true );
 
+	// State pre-selected from the URL (e.g. /find-a-member/texas/). The
+	// basePath + slugs let frontend.js keep the address bar in sync with the
+	// dropdown/map via the History API without a page reload.
+	$active_state = paccc_md_current_state_code();
+	$dir_path     = paccc_md_directory_path();
+
 	wp_enqueue_script( 'paccc-md-frontend', PACCC_MD_URL . 'assets/frontend.js', array( 'jsvectormap-us' ), PACCC_MD_VERSION, true );
 	wp_localize_script(
 		'paccc-md-frontend',
 		'PACCC_DIR',
 		array(
-			'counts'     => $state_counts,
-			'names'      => $states,
-			'highlight'  => $map_settings['highlight'],
-			'fontFamily' => $map_settings['font'],
-			'fontWeight' => $map_settings['weight'],
-			'perPage'    => (int) apply_filters( 'paccc_md_per_page', 20 ),
+			'counts'       => $state_counts,
+			'names'        => $states,
+			'slugs'        => paccc_md_state_slugs(),
+			'basePath'     => $dir_path ? '/' . $dir_path . '/' : '',
+			'initialState' => $active_state,
+			'highlight'    => $map_settings['highlight'],
+			'fontFamily'   => $map_settings['font'],
+			'fontWeight'   => $map_settings['weight'],
+			'perPage'      => (int) apply_filters( 'paccc_md_per_page', 20 ),
 		)
 	);
 
@@ -179,6 +188,18 @@ function paccc_md_shortcode( $atts ) {
 	}
 	?>
 	<div class="paccc-directory-wrap">
+		<?php
+		/*
+		 * State heading, server-rendered when the URL targets a state so the
+		 * page has distinct, crawlable content ("...in Texas"). Hidden on the
+		 * unfiltered directory; frontend.js shows/updates it as the visitor
+		 * changes the filter.
+		 */
+		?>
+		<h2 class="paccc-state-heading"<?php echo $active_state ? '' : ' hidden'; ?>>
+			<?php echo $active_state ? esc_html( paccc_md_state_title_text( $active_state ) ) : ''; ?>
+		</h2>
+
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
 
@@ -189,7 +210,7 @@ function paccc_md_shortcode( $atts ) {
 					<option value="">All States</option>
 					<?php foreach ( $states as $code => $name ) : ?>
 						<?php $count = isset( $state_counts[ $code ] ) ? (int) $state_counts[ $code ] : 0; ?>
-						<option value="<?php echo esc_attr( $code ); ?>"><?php echo esc_html( $count ? $name . ' (' . $count . ')' : $name ); ?></option>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $active_state, $code ); ?>><?php echo esc_html( $count ? $name . ' (' . $count . ')' : $name ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</div>

@@ -223,10 +223,52 @@
 		var listEl = document.getElementById('paccc-members');
 
 		var alphaButtons = Array.prototype.slice.call(document.querySelectorAll('.paccc-alpha'));
+		var stateHeadingEl = document.querySelector('.paccc-state-heading');
 
-		var currentState = '';
+		// Per-state URLs (e.g. /find-a-member/texas/). slugs maps code->slug;
+		// codeBySlug is the reverse, for reading a state back out of the URL.
+		var slugs = data.slugs || {};
+		var basePath = data.basePath || '';
+		var codeBySlug = {};
+		Object.keys(slugs).forEach(function (c) { codeBySlug[slugs[c]] = c; });
+		var canRoute = !!(basePath && window.history && window.history.pushState);
+
+		// Seed from the URL the page was served at, so the initial render is
+		// already filtered without a flash or a second pass.
+		var currentState = data.initialState || '';
 		var currentLetter = '';
 		var currentPage = 1;
+
+		function stateUrl(code) {
+			if (!basePath) {
+				return '';
+			}
+			var slug = code ? slugs[code] : '';
+			return slug ? basePath + slug + '/' : basePath;
+		}
+
+		function pushStateUrl(code) {
+			if (!canRoute) {
+				return;
+			}
+			var url = stateUrl(code);
+			if (url) {
+				window.history.pushState({ pacccState: code || '' }, '', url);
+			}
+		}
+
+		function updateStateHeading(code) {
+			if (!stateHeadingEl) {
+				return;
+			}
+			if (code) {
+				stateHeadingEl.textContent = 'PACCC Certified Members in ' + (names[code] || code);
+				stateHeadingEl.hidden = false;
+			} else {
+				stateHeadingEl.textContent = '';
+				stateHeadingEl.hidden = true;
+			}
+		}
 
 		// A row shows only if it matches BOTH the active state and the active
 		// letter. Empty currentState / currentLetter mean "no restriction".
@@ -344,11 +386,18 @@
 			}
 		}
 
-		function setState(st, scroll) {
+		// pushUrl controls whether the address bar is updated: true for direct
+		// user actions (dropdown, map), false when we're reflecting a URL that's
+		// already current (initial load, browser back/forward).
+		function setState(st, scroll, pushUrl) {
 			currentState = st || '';
 			currentPage = 1;
 			if (select) {
 				select.value = currentState;
+			}
+			updateStateHeading(currentState);
+			if (pushUrl) {
+				pushStateUrl(currentState);
 			}
 			render();
 			if (scroll && listEl) {
@@ -358,13 +407,33 @@
 
 		// Called by the map when a highlighted state is clicked.
 		function filterByState(st) {
-			setState(st, true);
+			setState(st, true, true);
 		}
 
 		if (select) {
 			select.addEventListener('change', function () {
-				setState(select.value, false);
+				setState(select.value, false, true);
 			});
+		}
+
+		// Back/forward buttons: re-apply the state from the URL being restored,
+		// without pushing a new history entry.
+		if (canRoute) {
+			window.addEventListener('popstate', function (e) {
+				var code = (e.state && e.state.pacccState) || codeFromUrl();
+				setState(code, false, false);
+			});
+		}
+
+		function codeFromUrl() {
+			var path = window.location.pathname;
+			if (basePath && path.indexOf(basePath) === 0) {
+				var rest = path.slice(basePath.length).replace(/\/+$/, '');
+				if (rest && codeBySlug[rest]) {
+					return codeBySlug[rest];
+				}
+			}
+			return '';
 		}
 
 		// A-Z name filter. Highlights the active letter and re-renders; combines
@@ -386,6 +455,12 @@
 			});
 		});
 
+		// Initial paint reflects the state the page was served at (from the URL),
+		// so sync the control + heading but don't push a new history entry.
+		if (select) {
+			select.value = currentState;
+		}
+		updateStateHeading(currentState);
 		render();
 
 		/* ---------- "View Member" accordions ---------- */

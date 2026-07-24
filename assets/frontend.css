@@ -36,6 +36,19 @@
 	color: var(--paccc-ink);
 }
 
+/* State landing heading -- shown when the directory is scoped to one state
+   (via /find-a-member/{state}/ or the live filter). Hidden on the full
+   directory so the default view is unchanged. */
+.paccc-state-heading {
+	margin: 0 0 1.25rem;
+	text-align: center;
+	color: var(--paccc-purple);
+}
+
+.paccc-state-heading[hidden] {
+	display: none;
+}
+
 /* Map (jsVectorMap fills its container; container defines the size) */
 .paccc-map {
 	width: 100%;

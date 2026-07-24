@@ -1,0 +1,251 @@
+<?php
+/**
+ * PACCC Member Directory -- per-state URLs.
+ *
+ * Adds crawlable, shareable URLs for each state (e.g. /find-a-member/texas/)
+ * that resolve to the SAME directory page the [paccc_directory] shortcode
+ * renders -- no separate archive, no reload. A rewrite rule routes the state
+ * segment to a query var; the shortcode pre-selects that state server-side;
+ * and assets/frontend.js keeps the URL in sync with the dropdown/map via the
+ * History API. SEO title / description / canonical are set per state so each
+ * URL is a distinct, indexable landing page (Yoast-aware).
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/* ---------------------------------------------------------------------------
+ * State <-> slug mapping
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Map of 2-letter state code => URL slug (e.g. 'TX' => 'texas',
+ * 'NY' => 'new-york'). Derived from the display names in paccc_md_states().
+ */
+function paccc_md_state_slugs() {
+	static $slugs = null;
+	if ( null !== $slugs ) {
+		return $slugs;
+	}
+	$slugs = array();
+	foreach ( paccc_md_states() as $code => $name ) {
+		$slugs[ $code ] = sanitize_title( $name );
+	}
+	return $slugs;
+}
+
+/**
+ * Slug for a state code, or '' if unknown.
+ */
+function paccc_md_state_slug( $code ) {
+	$slugs = paccc_md_state_slugs();
+	return isset( $slugs[ $code ] ) ? $slugs[ $code ] : '';
+}
+
+/**
+ * State code for a URL slug, or '' if it doesn't match a real state.
+ */
+function paccc_md_state_from_slug( $slug ) {
+	$code = array_search( sanitize_title( $slug ), paccc_md_state_slugs(), true );
+	return $code ? $code : '';
+}
+
+/* ---------------------------------------------------------------------------
+ * Directory page location
+ * ------------------------------------------------------------------------ */
+
+/**
+ * The page holding the [paccc_directory] shortcode (0 if not set yet).
+ */
+function paccc_md_directory_page_id() {
+	return (int) get_option( 'paccc_directory_page_id' );
+}
+
+/**
+ * The directory page's path relative to the site root, e.g. 'find-a-member'
+ * (or 'parent/find-a-member' for a nested page). '' if there's no page.
+ */
+function paccc_md_directory_path() {
+	$id = paccc_md_directory_page_id();
+	if ( ! $id ) {
+		return '';
+	}
+	$uri = get_page_uri( $id );
+	return $uri ? $uri : '';
+}
+
+/**
+ * Full URL for a state's directory view, e.g.
+ * https://example.com/find-a-member/texas/. '' if unavailable.
+ */
+function paccc_md_state_url( $code ) {
+	$path = paccc_md_directory_path();
+	$slug = paccc_md_state_slug( $code );
+	if ( '' === $path || '' === $slug ) {
+		return '';
+	}
+	return home_url( user_trailingslashit( $path . '/' . $slug ) );
+}
+
+/* ---------------------------------------------------------------------------
+ * Rewrite rule + query var
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Route {directory-path}/{state-slug}/ to the directory page, carrying the
+ * state slug in the paccc_state query var. Registered on every load; the
+ * matching page still renders normally, just with the query var available.
+ */
+function paccc_md_register_state_rewrite() {
+	$id   = paccc_md_directory_page_id();
+	$path = paccc_md_directory_path();
+	if ( ! $id || '' === $path ) {
+		return;
+	}
+	// Match only real state slugs, so a genuine child page of the directory
+	// (e.g. /find-a-member/about/) still resolves normally instead of being
+	// swallowed by this rule. State slugs are [a-z0-9-], safe in the pattern.
+	$pattern = implode( '|', array_values( paccc_md_state_slugs() ) );
+	add_rewrite_rule(
+		'^' . $path . '/(' . $pattern . ')/?$',
+		'index.php?page_id=' . $id . '&paccc_state=$matches[1]',
+		'top'
+	);
+}
+add_action( 'init', 'paccc_md_register_state_rewrite' );
+
+function paccc_md_register_query_var( $vars ) {
+	$vars[] = 'paccc_state';
+	return $vars;
+}
+add_filter( 'query_vars', 'paccc_md_register_query_var' );
+
+/**
+ * The rewrite rule depends on the directory page's path, so whenever that
+ * page changes, flag a rewrite flush for the next load.
+ */
+function paccc_md_flag_rewrite_flush() {
+	update_option( 'paccc_md_flush_rewrites', 1 );
+}
+add_action( 'add_option_paccc_directory_page_id', 'paccc_md_flag_rewrite_flush' );
+add_action( 'update_option_paccc_directory_page_id', 'paccc_md_flag_rewrite_flush' );
+
+/**
+ * Flush once, after the rewrite rule has been registered for this request.
+ */
+function paccc_md_maybe_flush_rewrites() {
+	if ( get_option( 'paccc_md_flush_rewrites' ) ) {
+		flush_rewrite_rules();
+		delete_option( 'paccc_md_flush_rewrites' );
+	}
+}
+add_action( 'init', 'paccc_md_maybe_flush_rewrites', 20 );
+
+/* ---------------------------------------------------------------------------
+ * Active-state resolution
+ * ------------------------------------------------------------------------ */
+
+/**
+ * The state code from the current URL's paccc_state query var, validated
+ * against the real state list. '' when there's no (valid) state segment.
+ */
+function paccc_md_current_state_code() {
+	$slug = get_query_var( 'paccc_state' );
+	if ( '' === $slug || null === $slug ) {
+		return '';
+	}
+	return paccc_md_state_from_slug( $slug );
+}
+
+/**
+ * Like paccc_md_current_state_code(), but only on the directory page -- so a
+ * stray ?paccc_state= elsewhere can't trigger the per-state SEO output.
+ */
+function paccc_md_page_state_code() {
+	if ( ! is_page( paccc_md_directory_page_id() ) ) {
+		return '';
+	}
+	return paccc_md_current_state_code();
+}
+
+/* ---------------------------------------------------------------------------
+ * Per-state SEO (title / description / canonical), Yoast-aware
+ * ------------------------------------------------------------------------ */
+
+function paccc_md_state_title_text( $code ) {
+	$states = paccc_md_states();
+	return sprintf( 'PACCC Certified Members in %s', $states[ $code ] );
+}
+
+function paccc_md_state_desc_text( $code ) {
+	$states = paccc_md_states();
+	return sprintf(
+		'Find PACCC-certified professional animal care providers in %s. Browse certified members of the Professional Animal Care Certification Council.',
+		$states[ $code ]
+	);
+}
+
+/**
+ * Core / classic-theme document title.
+ */
+function paccc_md_state_document_title( $parts ) {
+	$code = paccc_md_page_state_code();
+	if ( $code ) {
+		$parts['title'] = paccc_md_state_title_text( $code );
+	}
+	return $parts;
+}
+add_filter( 'document_title_parts', 'paccc_md_state_document_title' );
+
+/**
+ * Yoast title (Yoast bypasses document_title_parts).
+ */
+function paccc_md_state_wpseo_title( $title ) {
+	$code = paccc_md_page_state_code();
+	if ( ! $code ) {
+		return $title;
+	}
+	return paccc_md_state_title_text( $code ) . ' - ' . get_bloginfo( 'name' );
+}
+add_filter( 'wpseo_title', 'paccc_md_state_wpseo_title' );
+
+/**
+ * Yoast meta description.
+ */
+function paccc_md_state_wpseo_metadesc( $desc ) {
+	$code = paccc_md_page_state_code();
+	return $code ? paccc_md_state_desc_text( $code ) : $desc;
+}
+add_filter( 'wpseo_metadesc', 'paccc_md_state_wpseo_metadesc' );
+
+/**
+ * Self-referencing canonical for each state URL. Without this, WordPress (and
+ * Yoast) would canonicalize the state URL back to the bare directory page,
+ * telling search engines the state pages are duplicates -- so they'd never
+ * rank. Applies to core canonical, Yoast canonical, and the OpenGraph URL.
+ */
+function paccc_md_state_canonical( $url ) {
+	$code = paccc_md_page_state_code();
+	if ( ! $code ) {
+		return $url;
+	}
+	$state_url = paccc_md_state_url( $code );
+	return $state_url ? $state_url : $url;
+}
+add_filter( 'get_canonical_url', 'paccc_md_state_canonical' );
+add_filter( 'wpseo_canonical', 'paccc_md_state_canonical' );
+add_filter( 'wpseo_opengraph_url', 'paccc_md_state_canonical' );
+
+/**
+ * Meta description for sites without Yoast (Yoast outputs its own).
+ */
+function paccc_md_state_meta_description() {
+	if ( defined( 'WPSEO_VERSION' ) ) {
+		return;
+	}
+	$code = paccc_md_page_state_code();
+	if ( ! $code ) {
+		return;
+	}
+	echo '<meta name="description" content="' . esc_attr( paccc_md_state_desc_text( $code ) ) . '">' . "\n";
+}
+add_action( 'wp_head', 'paccc_md_state_meta_description', 1 );
