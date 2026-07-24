@@ -224,9 +224,10 @@
 
 		var alphaButtons = Array.prototype.slice.call(document.querySelectorAll('.paccc-alpha'));
 		var stateHeadingEl = document.querySelector('.paccc-state-heading');
+		var stateIntroEl = document.querySelector('.paccc-state-intro');
 		var viewStateBtn = document.querySelector('.paccc-view-state');
 
-		// Per-state URLs (e.g. /find-a-member/texas/). slugs maps code->slug;
+		// Per-state URLs (e.g. /paccc-certified-members/texas/). slugs maps code->slug;
 		// codeBySlug is the reverse, for reading a state back out of the URL.
 		var slugs = data.slugs || {};
 		var basePath = data.basePath || '';
@@ -269,6 +270,29 @@
 				stateHeadingEl.textContent = '';
 				stateHeadingEl.hidden = true;
 			}
+		}
+
+		// State intro sentence, mirrored client-side from the server template so
+		// it stays in step as the visitor filters.
+		function updateStateIntro(code) {
+			if (!stateIntroEl) {
+				return;
+			}
+			if (!code) {
+				stateIntroEl.textContent = '';
+				stateIntroEl.hidden = true;
+				return;
+			}
+			var n = counts[code] || 0;
+			var name = names[code] || code;
+			var text;
+			if (n < 1) {
+				text = 'There are no PACCC-certified members in ' + name + ' yet.';
+			} else {
+				text = (n === 1 ? 'There is 1 PACCC-certified professional animal care provider in ' : 'There are ' + n + ' PACCC-certified professional animal care providers in ') + name + '.';
+			}
+			stateIntroEl.textContent = text;
+			stateIntroEl.hidden = false;
 		}
 
 		// "View State Page" links to the selected state's own URL; hidden when
@@ -412,6 +436,7 @@
 				select.value = currentState;
 			}
 			updateStateHeading(currentState);
+			updateStateIntro(currentState);
 			updateViewStateBtn(currentState);
 			if (pushUrl) {
 				pushStateUrl(currentState);
@@ -478,6 +503,7 @@
 			select.value = currentState;
 		}
 		updateStateHeading(currentState);
+		updateStateIntro(currentState);
 		updateViewStateBtn(currentState);
 		render();
 

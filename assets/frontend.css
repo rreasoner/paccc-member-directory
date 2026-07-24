@@ -37,7 +37,7 @@
 }
 
 /* State landing heading -- shown when the directory is scoped to one state
-   (via /find-a-member/{state}/ or the live filter). Hidden on the full
+   (via /paccc-certified-members/{state}/ or the live filter). Hidden on the full
    directory so the default view is unchanged. */
 .paccc-state-heading {
 	margin: 0 0 1.25rem;
@@ -47,6 +47,55 @@
 
 .paccc-state-heading[hidden] {
 	display: none;
+}
+
+.paccc-state-intro {
+	margin: -0.5rem 0 1.5rem;
+	text-align: center;
+	color: var(--paccc-ink-soft);
+}
+
+.paccc-state-intro[hidden] {
+	display: none;
+}
+
+/* Crawlable "Browse by state" links -- primary discovery path for the
+   per-state URLs, and a handy footer index for visitors. */
+.paccc-state-links {
+	margin: 1.5rem 0 0;
+	padding: 1.25rem 1.35rem;
+	background: var(--paccc-cream);
+	border-radius: 16px;
+}
+
+.paccc-state-links-heading {
+	margin: 0 0 0.85rem;
+	font-size: 1em;
+	color: var(--paccc-purple);
+}
+
+.paccc-state-links-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 0.35rem 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.paccc-state-links-list a {
+	color: var(--paccc-purple);
+	text-decoration: none;
+}
+
+.paccc-state-links-list a:hover,
+.paccc-state-links-list a:focus-visible {
+	text-decoration: underline;
+}
+
+.paccc-state-links-count {
+	color: var(--paccc-ink-soft);
+	font-size: 0.85em;
 }
 
 /* Map (jsVectorMap fills its container; container defines the size) */

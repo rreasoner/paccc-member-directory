@@ -152,7 +152,7 @@ function paccc_md_shortcode( $atts ) {
 
 	$map_settings = paccc_md_enqueue_frontend( true );
 
-	// State pre-selected from the URL (e.g. /find-a-member/texas/). The
+	// State pre-selected from the URL (e.g. /paccc-certified-members/texas/). The
 	// basePath + slugs let frontend.js keep the address bar in sync with the
 	// dropdown/map via the History API without a page reload.
 	$active_state = paccc_md_current_state_code();
@@ -199,6 +199,9 @@ function paccc_md_shortcode( $atts ) {
 		<h2 class="paccc-state-heading"<?php echo $active_state ? '' : ' hidden'; ?>>
 			<?php echo $active_state ? esc_html( paccc_md_state_title_text( $active_state ) ) : ''; ?>
 		</h2>
+		<p class="paccc-state-intro"<?php echo $active_state ? '' : ' hidden'; ?>>
+			<?php echo $active_state ? esc_html( paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 ) ) : ''; ?>
+		</p>
 
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
@@ -215,7 +218,7 @@ function paccc_md_shortcode( $atts ) {
 				</select>
 				<?php
 				/*
-				 * Link to the selected state's own URL (/find-a-member/texas/).
+				 * Link to the selected state's own URL (/paccc-certified-members/texas/).
 				 * The dropdown already updates the address bar via the History
 				 * API, but this is the visible affordance for landing on -- and
 				 * sharing -- the dedicated, indexable state page. Shown only when
@@ -365,6 +368,30 @@ function paccc_md_shortcode( $atts ) {
 
 			<nav class="paccc-pagination" aria-label="Member directory pages" hidden></nav>
 		</div>
+
+		<?php
+		/*
+		 * Crawlable per-state links. The dropdown/map filter client-side, so
+		 * these real <a> tags are how search engines (and AI crawlers) actually
+		 * discover the /paccc-certified-members/{state}/ pages. Only states with members.
+		 */
+		$paccc_linked_states = paccc_md_states_with_members();
+		?>
+		<?php if ( $paccc_linked_states ) : ?>
+			<nav class="paccc-state-links" aria-label="Browse certified members by state">
+				<h2 class="paccc-state-links-heading">Browse certified members by state</h2>
+				<ul class="paccc-state-links-list">
+					<?php foreach ( $paccc_linked_states as $paccc_lcode ) : ?>
+						<li>
+							<a href="<?php echo esc_url( paccc_md_state_url( $paccc_lcode ) ); ?>">
+								<?php echo esc_html( $states[ $paccc_lcode ] ); ?>
+								<span class="paccc-state-links-count">(<?php echo (int) $state_counts[ $paccc_lcode ]; ?>)</span>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+		<?php endif; ?>
 	</div>
 	<?php
 	return ob_get_clean();

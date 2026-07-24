@@ -2,7 +2,7 @@
 /**
  * PACCC Member Directory -- per-state URLs.
  *
- * Adds crawlable, shareable URLs for each state (e.g. /find-a-member/texas/)
+ * Adds crawlable, shareable URLs for each state (e.g. /paccc-certified-members/texas/)
  * that resolve to the SAME directory page the [paccc_directory] shortcode
  * renders -- no separate archive, no reload. A rewrite rule routes the state
  * segment to a query var; the shortcode pre-selects that state server-side;
@@ -61,8 +61,8 @@ function paccc_md_directory_page_id() {
 }
 
 /**
- * The directory page's path relative to the site root, e.g. 'find-a-member'
- * (or 'parent/find-a-member' for a nested page). '' if there's no page.
+ * The directory page's path relative to the site root, e.g. 'paccc-certified-members'
+ * (or 'parent/paccc-certified-members' for a nested page). '' if there's no page.
  */
 function paccc_md_directory_path() {
 	$id = paccc_md_directory_page_id();
@@ -75,7 +75,7 @@ function paccc_md_directory_path() {
 
 /**
  * Full URL for a state's directory view, e.g.
- * https://example.com/find-a-member/texas/. '' if unavailable.
+ * https://example.com/paccc-certified-members/texas/. '' if unavailable.
  */
 function paccc_md_state_url( $code ) {
 	$path = paccc_md_directory_path();
@@ -102,7 +102,7 @@ function paccc_md_register_state_rewrite() {
 		return;
 	}
 	// Match only real state slugs, so a genuine child page of the directory
-	// (e.g. /find-a-member/about/) still resolves normally instead of being
+	// (e.g. /paccc-certified-members/about/) still resolves normally instead of being
 	// swallowed by this rule. State slugs are [a-z0-9-], safe in the pattern.
 	$pattern = implode( '|', array_values( paccc_md_state_slugs() ) );
 	add_rewrite_rule(
@@ -249,3 +249,160 @@ function paccc_md_state_meta_description() {
 	echo '<meta name="description" content="' . esc_attr( paccc_md_state_desc_text( $code ) ) . '">' . "\n";
 }
 add_action( 'wp_head', 'paccc_md_state_meta_description', 1 );
+
+/* ---------------------------------------------------------------------------
+ * Member counts + intro copy
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Published member count per state code, computed once per request.
+ */
+function paccc_md_state_counts() {
+	static $counts = null;
+	if ( null !== $counts ) {
+		return $counts;
+	}
+	$counts = array();
+	foreach ( paccc_md_get_members() as $m ) {
+		if ( $m->state ) {
+			$counts[ $m->state ] = isset( $counts[ $m->state ] ) ? $counts[ $m->state ] + 1 : 1;
+		}
+	}
+	return $counts;
+}
+
+/**
+ * State codes that have at least one member, in the canonical state order.
+ * These are the only states worth linking / listing in the sitemap -- an empty
+ * state page would be thin content.
+ */
+function paccc_md_states_with_members() {
+	$counts = paccc_md_state_counts();
+	$codes  = array();
+	foreach ( array_keys( paccc_md_states() ) as $code ) {
+		if ( ! empty( $counts[ $code ] ) ) {
+			$codes[] = $code;
+		}
+	}
+	return $codes;
+}
+
+/**
+ * A natural-language sentence for a state page ("There are 3 PACCC-certified
+ * ... in Texas."). Server-rendered so AI answer engines and search snippets
+ * have a clear, quotable summary of what the page is about.
+ */
+function paccc_md_state_intro_text( $code, $count = null ) {
+	$states = paccc_md_states();
+	$name   = isset( $states[ $code ] ) ? $states[ $code ] : $code;
+
+	if ( null === $count ) {
+		$counts = paccc_md_state_counts();
+		$count  = isset( $counts[ $code ] ) ? (int) $counts[ $code ] : 0;
+	}
+
+	if ( $count < 1 ) {
+		return sprintf( 'There are no PACCC-certified members in %s yet.', $name );
+	}
+
+	return sprintf(
+		/* translators: 1: member count, 2: state name */
+		_n(
+			'There is %1$d PACCC-certified professional animal care provider in %2$s.',
+			'There are %1$d PACCC-certified professional animal care providers in %2$s.',
+			$count,
+			'paccc-member-directory'
+		),
+		$count,
+		$name
+	);
+}
+
+/* ---------------------------------------------------------------------------
+ * XML sitemap: list the per-state URLs so search engines discover them
+ * (they're virtual routes, not posts/terms, so they aren't included
+ * automatically). Yoast path when Yoast is active; WordPress core sitemaps
+ * otherwise.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Yoast: register a dedicated /paccc_states-sitemap.xml and add it to the
+ * sitemap index. Guarded so a fatal is impossible if the API shifts.
+ */
+function paccc_md_register_yoast_sitemap() {
+	if ( ! defined( 'WPSEO_VERSION' ) ) {
+		return;
+	}
+	global $wpseo_sitemaps;
+	if ( empty( $wpseo_sitemaps ) || ! is_object( $wpseo_sitemaps ) || ! method_exists( $wpseo_sitemaps, 'register_sitemap' ) ) {
+		return;
+	}
+	$wpseo_sitemaps->register_sitemap( 'paccc_states', 'paccc_md_build_yoast_state_sitemap' );
+	// Only advertise the sitemap in the index once we know registration ran,
+	// so we never point search engines at a URL that 404s.
+	add_filter( 'wpseo_sitemap_index', 'paccc_md_yoast_sitemap_index_entry' );
+}
+add_action( 'init', 'paccc_md_register_yoast_sitemap', 99 );
+
+function paccc_md_yoast_sitemap_index_entry( $index ) {
+	if ( ! paccc_md_states_with_members() ) {
+		return $index;
+	}
+	$index .= '<sitemap><loc>' . esc_url( home_url( '/paccc_states-sitemap.xml' ) ) . '</loc>'
+		. '<lastmod>' . esc_html( gmdate( 'c' ) ) . '</lastmod></sitemap>';
+	return $index;
+}
+
+function paccc_md_build_yoast_state_sitemap() {
+	global $wpseo_sitemaps;
+	$urls = '';
+	foreach ( paccc_md_states_with_members() as $code ) {
+		$url = paccc_md_state_url( $code );
+		if ( $url ) {
+			$urls .= '<url><loc>' . esc_url( $url ) . '</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>' . "\n";
+		}
+	}
+	$sitemap = '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n" . $urls . '</urlset>';
+	$wpseo_sitemaps->set_sitemap( $sitemap );
+}
+
+/**
+ * WordPress core sitemaps (only when Yoast isn't active -- Yoast disables
+ * core sitemaps). The provider class is defined lazily because its parent,
+ * WP_Sitemaps_Provider, isn't loaded until WordPress boots the sitemaps API.
+ */
+function paccc_md_register_core_sitemap() {
+	if ( defined( 'WPSEO_VERSION' ) ) {
+		return;
+	}
+	if ( ! class_exists( 'WP_Sitemaps_Provider' ) || ! function_exists( 'wp_register_sitemap_provider' ) ) {
+		return;
+	}
+
+	if ( ! class_exists( 'PACCC_MD_State_Sitemap_Provider' ) ) {
+		class PACCC_MD_State_Sitemap_Provider extends WP_Sitemaps_Provider {
+			public function __construct() {
+				$this->name        = 'paccc_states';
+				$this->object_type = 'paccc_state';
+			}
+
+			public function get_url_list( $page_num, $object_subtype = '' ) {
+				$urls = array();
+				foreach ( paccc_md_states_with_members() as $code ) {
+					$url = paccc_md_state_url( $code );
+					if ( $url ) {
+						$urls[] = array( 'loc' => $url );
+					}
+				}
+				return $urls;
+			}
+
+			public function get_max_num_pages( $object_subtype = '' ) {
+				return paccc_md_states_with_members() ? 1 : 0;
+			}
+		}
+	}
+
+	wp_register_sitemap_provider( 'paccc_states', new PACCC_MD_State_Sitemap_Provider() );
+}
+add_action( 'init', 'paccc_md_register_core_sitemap' );
