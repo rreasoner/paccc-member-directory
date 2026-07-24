@@ -472,27 +472,13 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 		<?php endif; ?>
 
 		<div class="paccc-member-card">
-			<?php if ( $m->certifications ) : ?>
-				<ul class="paccc-cert-list">
-					<?php foreach ( $m->certifications as $cert ) : ?>
-						<li class="paccc-cert">
-							<?php if ( isset( $cert_labels[ $cert ] ) ) : ?>
-								<abbr title="<?php echo esc_attr( $cert_labels[ $cert ] ); ?>"><?php echo esc_html( $cert ); ?></abbr>
-							<?php else : ?>
-								<?php echo esc_html( $cert ); ?>
-							<?php endif; ?>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			<?php endif; ?>
-
 			<?php
 			/*
 			 * On the built-in single template the business name is the page's
 			 * H1, so it's dropped here to avoid repeating it ($show_business_name
 			 * is false). The [paccc_member] shortcode has no such heading, so it
 			 * passes true and the name shows above Member Name.
-			 * Certification(s) is dropped too -- shown as pills above instead.
+			 * Certification pills are shown below Member Name instead of as a row.
 			 * Member Number stays last and de-emphasized rather than removed
 			 * outright, since it's still useful for e.g. a member
 			 * cross-checking their own certificate.
@@ -509,6 +495,24 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 					<dt>Member Name</dt>
 					<dd><?php echo esc_html( $m->member_name ); ?></dd>
 				</div>
+				<?php if ( $m->certifications ) : ?>
+					<div>
+						<dt>Certification(s)</dt>
+						<dd>
+							<ul class="paccc-cert-list">
+								<?php foreach ( $m->certifications as $cert ) : ?>
+									<li class="paccc-cert">
+										<?php if ( isset( $cert_labels[ $cert ] ) ) : ?>
+											<abbr title="<?php echo esc_attr( $cert_labels[ $cert ] ); ?>"><?php echo esc_html( $cert ); ?></abbr>
+										<?php else : ?>
+											<?php echo esc_html( $cert ); ?>
+										<?php endif; ?>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						</dd>
+					</div>
+				<?php endif; ?>
 				<div>
 					<dt>Address</dt>
 					<dd>
