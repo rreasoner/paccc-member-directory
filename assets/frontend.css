@@ -513,6 +513,7 @@
 	.paccc-member-page-btn,
 	.paccc-view-state,
 	.paccc-alpha,
+	.paccc-back-link a,
 	.paccc-member-single .paccc-directions {
 		transition: none;
 	}
@@ -631,14 +632,24 @@
 	color: var(--paccc-ink-soft);
 }
 
+/* White button with a purple outline, matching the plugin's button system. */
 .paccc-back-link a {
+	display: inline-flex;
+	align-items: center;
+	background: #fff;
 	color: var(--paccc-purple);
+	border: 1px solid #622467;
+	border-radius: 999px;
+	padding: 0.4rem 0.9rem;
 	text-decoration: none;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .paccc-back-link a:hover,
 .paccc-back-link a:focus-visible {
-	text-decoration: underline;
+	background: var(--paccc-gold-pale);
+	text-decoration: none;
 }
 
 /* Business name links to the member's own page */
