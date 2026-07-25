@@ -576,6 +576,30 @@
 	padding-bottom: 10px;
 }
 
+/* Business name treated as the card's headline: hide the label and promote the
+   value to a full-width, brand-purple heading with a gold accent bar. The high-
+   specificity selector is required so the zeroed vertical padding beats the
+   generic dd padding-bottom above; margin (outside the border) keeps the gap
+   below without lengthening the accent bar, and line-height keeps the bar to
+   the text height. */
+.paccc-member-business-name-row dt {
+	display: none;
+}
+
+.paccc-member-single .paccc-member-details .paccc-member-business-name-row dd {
+	grid-column: 1 / -1;
+	font-family: var(--paccc-heading-font, inherit);
+	font-size: 1.7em;
+	font-weight: 700;
+	line-height: 1.1;
+	color: var(--paccc-purple);
+	border-left: 4px solid #FECA38;
+	padding-top: 0;
+	padding-bottom: 0;
+	padding-left: 0.6rem;
+	margin-bottom: 0.75rem;
+}
+
 /* Member Number is an internal registry ID, not something a public visitor
    needs first -- de-emphasized rather than removed, since it's still useful
    for e.g. a member cross-checking their own certificate. */
