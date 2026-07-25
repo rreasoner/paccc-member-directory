@@ -161,7 +161,47 @@ function paccc_md_shortcodes_reference() {
 			'code' => '[paccc_member_directions]',
 			'desc' => 'A “Get Directions” button to Google Maps (nothing if no address). Optional text="Map it".',
 		),
+		array(
+			'code' => '[paccc_current_state]',
+			'desc' => 'The current state’s name (e.g. Texas) on a /state/ directory URL — for a page-builder heading. Optional default="" for the unfiltered directory.',
+		),
+		array(
+			'code' => '[paccc_current_state_title]',
+			'desc' => 'The full state heading, e.g. “PACCC Certified Members in Texas”. Optional default="…". Live-updates as the visitor filters.',
+		),
+		array(
+			'code' => '[paccc_current_state_intro]',
+			'desc' => 'The state’s intro sentence, e.g. “There is 1 PACCC-certified member in Texas.” Optional default="…".',
+		),
 	);
+}
+
+/**
+ * The shortcodes reference as a table (code + Copy button + description).
+ * Shared by the member-list panel and the settings screen.
+ */
+function paccc_md_render_shortcodes_table() {
+	?>
+	<table class="widefat striped paccc-md-shortcodes-table">
+		<thead>
+			<tr>
+				<th scope="col">Shortcode</th>
+				<th scope="col">What it does</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach ( paccc_md_shortcodes_reference() as $sc ) : ?>
+				<tr>
+					<td class="paccc-md-shortcode-cell">
+						<code><?php echo esc_html( $sc['code'] ); ?></code>
+						<button type="button" class="button button-small paccc-md-copy" data-clipboard="<?php echo esc_attr( $sc['code'] ); ?>">Copy</button>
+					</td>
+					<td><?php echo esc_html( $sc['desc'] ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
+	<?php
 }
 
 /**
@@ -181,25 +221,7 @@ function paccc_md_render_shortcodes_panel() {
 		<p class="description">
 			The <code>[paccc_member…]</code> field shortcodes render the current member, so they belong in a single-member layout (e.g. a Beaver Themer template). Add <code>id="123"</code> to target a specific member anywhere else.
 		</p>
-		<table class="widefat striped paccc-md-shortcodes-table">
-			<thead>
-				<tr>
-					<th scope="col">Shortcode</th>
-					<th scope="col">What it does</th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ( paccc_md_shortcodes_reference() as $sc ) : ?>
-					<tr>
-						<td class="paccc-md-shortcode-cell">
-							<code><?php echo esc_html( $sc['code'] ); ?></code>
-							<button type="button" class="button button-small paccc-md-copy" data-clipboard="<?php echo esc_attr( $sc['code'] ); ?>">Copy</button>
-						</td>
-						<td><?php echo esc_html( $sc['desc'] ); ?></td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
+		<?php paccc_md_render_shortcodes_table(); ?>
 	</div>
 	<?php
 }
@@ -773,6 +795,12 @@ function paccc_md_render_settings() {
 				<?php endif; ?>
 			</tbody>
 		</table>
+
+		<h2>Available shortcodes</h2>
+		<p class="description">
+			The <code>[paccc_member…]</code> and <code>[paccc_current_state…]</code> shortcodes render the current member/state, so they belong in a single-member or state layout (e.g. a Beaver Themer template). Add <code>id="123"</code> to a member shortcode to target a specific member anywhere else.
+		</p>
+		<?php paccc_md_render_shortcodes_table(); ?>
 	</div>
 	<?php
 }

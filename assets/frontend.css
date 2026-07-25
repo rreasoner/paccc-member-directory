@@ -632,7 +632,7 @@
 	color: var(--paccc-ink-soft);
 }
 
-/* White button with a purple outline, matching the plugin's button system. */
+/* White button with a gold outline, matching the plugin's button system. */
 .paccc-back-link a {
 	display: inline-flex;
 	align-items: center;
