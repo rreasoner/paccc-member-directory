@@ -81,7 +81,7 @@ function paccc_md_display_url( $url ) {
 function paccc_md_render_contact_rows( $m ) {
 	if ( '' !== trim( (string) $m->website ) ) :
 		?>
-		<div>
+		<div class="paccc-member-website-row">
 			<dt>Website</dt>
 			<dd>
 				<a class="paccc-member-contact" href="<?php echo esc_url( $m->website ); ?>" target="_blank" rel="noopener noreferrer nofollow">
@@ -94,7 +94,7 @@ function paccc_md_render_contact_rows( $m ) {
 
 	if ( '' !== trim( (string) $m->email ) ) :
 		?>
-		<div>
+		<div class="paccc-member-email-row">
 			<dt>Email</dt>
 			<dd><a class="paccc-member-contact" href="<?php echo esc_url( 'mailto:' . $m->email ); ?>"><?php echo esc_html( $m->email ); ?></a></dd>
 		</div>
@@ -486,17 +486,17 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 			?>
 			<dl class="paccc-member-details">
 				<?php if ( $show_business_name && '' !== trim( (string) $m->business_name ) ) : ?>
-					<div>
+					<div class="paccc-member-business-name-row">
 						<dt>Business Name</dt>
 						<dd><?php echo esc_html( $m->business_name ); ?></dd>
 					</div>
 				<?php endif; ?>
-				<div>
+				<div class="paccc-member-name-row">
 					<dt>Member Name</dt>
 					<dd><?php echo esc_html( $m->member_name ); ?></dd>
 				</div>
 				<?php if ( $m->certifications ) : ?>
-					<div>
+					<div class="paccc-member-cert-row">
 						<dt>Certification(s)</dt>
 						<dd>
 							<ul class="paccc-cert-list">
@@ -513,7 +513,7 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 						</dd>
 					</div>
 				<?php endif; ?>
-				<div>
+				<div class="paccc-member-address-row">
 					<dt>Address</dt>
 					<dd>
 						<?php echo $lines ? nl2br( esc_html( implode( "\n", $lines ) ) ) : '—'; ?>
