@@ -650,6 +650,16 @@
 
 /* Breadcrumb above the card, so the way back is the first thing on the page
    rather than something to find below a tall map embed. */
+
+.paccc-back-link a {
+	background: #7d2d84;
+	color: #fff;
+}
+
+.paccc-back-link a:hover {
+	background: #FDE5A6;
+	color: #622467;
+}
 .paccc-back-link {
 	margin: 0 0 1.3rem;
 	font-size: 0.9em;
@@ -660,9 +670,9 @@
 .paccc-back-link a {
 	display: inline-flex;
 	align-items: center;
-	background: #fff;
-	color: var(--paccc-purple);
-	border: 1px solid #FECA38;
+	background: #7d2d84;
+	color: #fff;
+	border: 1px solid #DB8B49;
 	border-radius: 999px;
 	padding: 0.4rem 0.9rem;
 	text-decoration: none;
@@ -673,6 +683,7 @@
 .paccc-back-link a:hover,
 .paccc-back-link a:focus-visible {
 	background: var(--paccc-gold-pale);
+	color: #7d2d84;
 	text-decoration: none;
 }
 
