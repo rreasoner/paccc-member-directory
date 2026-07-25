@@ -529,7 +529,7 @@
    of bare text on the theme's page background. */
 .paccc-member-card {
 	background: #fff;
-	padding: 24px;
+	padding: 32px;
 	border: 1px solid var(--paccc-line);
 	border-radius: 16px;
 	box-shadow: var(--paccc-card-shadow);
