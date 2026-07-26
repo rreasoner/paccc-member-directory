@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Member Directory
  * Description:       Member directory for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via the [paccc_directory] shortcode.
- * Version:           2.17.4
+ * Version:           2.18.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.17.4' );
+define( 'PACCC_MD_VERSION', '2.18.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -103,7 +103,8 @@ function paccc_md_certifications() {
 
 /**
  * Register the member post type. The business name is the post title, so each
- * member gets a real permalink such as /members/pet-resort-marketing/.
+ * member gets a real permalink such as /paccc-certified-members/pet-resort-marketing/,
+ * nested under the same base as the directory page.
  */
 function paccc_md_register_cpt() {
 	register_post_type(
@@ -131,12 +132,14 @@ function paccc_md_register_cpt() {
 			'menu_icon'          => 'dashicons-pets',
 			'menu_position'      => 26,
 			/*
-			 * No post type archive: /members/ would duplicate the shortcode
-			 * directory page. The directory page is the hub that links out.
+			 * No post type archive: an archive at the base would duplicate the
+			 * shortcode directory page. The directory page is the hub that links
+			 * out. Members share the directory page's base slug so a member URL
+			 * reads /paccc-certified-members/{business}/.
 			 */
 			'has_archive'        => false,
 			'rewrite'            => array(
-				'slug'       => apply_filters( 'paccc_md_permalink_slug', 'members' ),
+				'slug'       => apply_filters( 'paccc_md_permalink_slug', 'paccc-certified-members' ),
 				'with_front' => false,
 			),
 			'supports'           => array( 'title' ),

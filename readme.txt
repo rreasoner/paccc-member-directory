@@ -25,8 +25,8 @@ Frontend:
 == 2.0 — member pages ==
 
 Members are now a custom post type: each member has its own URL
-(/members/business-name/), its own title, meta description, and LocalBusiness
-schema. This is the change that lets individual members rank in search.
+(/paccc-certified-members/business-name/), its own title, meta description, and
+LocalBusiness schema. This is the change that lets individual members rank in search.
 
 * Existing members are migrated automatically from the old wp_paccc_members
   table the first time an admin page loads. The old table is NOT dropped — it
@@ -36,8 +36,9 @@ schema. This is the change that lets individual members rank in search.
 * The admin list lives under Member Directory, using WordPress's own list
   table (search, sorting, trash). Settings moved to Member Directory > Settings.
 * Business Name is the post title. Everything else is in the Member Details box.
-* The post type has no archive — /members/ would duplicate the shortcode
-  directory page, which stays the hub linking to each member.
+* The post type has no archive — an archive at the base would duplicate the
+  shortcode directory page, which stays the hub linking to each member. Members
+  share the directory page's base: /paccc-certified-members/business-name/.
 * Permalink slug is filterable via paccc_md_permalink_slug.
 
 == Updates via GitHub ==
