@@ -77,15 +77,29 @@ function paccc_md_columns( $columns ) {
 	return array(
 		'cb'             => isset( $columns['cb'] ) ? $columns['cb'] : '',
 		'paccc_photo'    => 'Photo',
-		'paccc_state'    => 'State',
 		'title'          => 'Business Name',
 		'member_name'    => 'Member Name',
+		'paccc_state'    => 'State',
 		'certifications' => 'Certification(s)',
 		'unique_link'    => 'Unique Link',
 		'date'           => 'Date',
 	);
 }
 add_filter( 'manage_' . PACCC_MD_CPT . '_posts_columns', 'paccc_md_columns' );
+
+/**
+ * Hide Yoast SEO's list-table columns (score dots, meta, internal-link counts)
+ * from the member list. Runs late so it strips them after Yoast adds them.
+ */
+function paccc_md_hide_yoast_columns( $columns ) {
+	foreach ( array_keys( $columns ) as $key ) {
+		if ( 0 === strpos( (string) $key, 'wpseo' ) ) {
+			unset( $columns[ $key ] );
+		}
+	}
+	return $columns;
+}
+add_filter( 'manage_' . PACCC_MD_CPT . '_posts_columns', 'paccc_md_hide_yoast_columns', 99 );
 
 function paccc_md_column_content( $column, $post_id ) {
 	$member = paccc_md_get_member( $post_id );
