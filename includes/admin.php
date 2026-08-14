@@ -39,6 +39,9 @@ function paccc_md_admin_assets( $hook ) {
 
 	wp_enqueue_style( 'paccc-md-admin', PACCC_MD_URL . 'assets/admin.css', array(), PACCC_MD_VERSION );
 	wp_enqueue_style( 'wp-color-picker' );
+	if ( $is_member_screen ) {
+		wp_enqueue_media(); // for the member image / logo picker
+	}
 	wp_enqueue_script( 'paccc-md-admin', PACCC_MD_URL . 'assets/admin.js', array( 'wp-color-picker' ), PACCC_MD_VERSION, true );
 
 	wp_localize_script(
@@ -328,6 +331,21 @@ function paccc_md_render_meta_box( $post ) {
 			<td><input type="text" id="paccc_member_name" name="paccc_member_name" value="<?php echo esc_attr( $member->member_name ); ?>" class="regular-text" /></td>
 		</tr>
 		<tr>
+			<th scope="row">Image / Logo</th>
+			<td>
+				<?php $paccc_img = paccc_md_member_image_url( $member->image_id, 'medium' ); ?>
+				<div id="paccc-md-image" class="paccc-md-image"<?php echo $paccc_img ? '' : ' data-empty="1"'; ?>>
+					<img src="<?php echo esc_url( $paccc_img ); ?>" alt="" class="paccc-md-image-preview"<?php echo $paccc_img ? '' : ' hidden'; ?> />
+				</div>
+				<input type="hidden" id="paccc-md-image-id" name="paccc_image_id" value="<?php echo esc_attr( $member->image_id ? $member->image_id : '' ); ?>" />
+				<p>
+					<button type="button" class="button" id="paccc-md-image-select"><?php echo $paccc_img ? 'Replace image' : 'Select image'; ?></button>
+					<button type="button" class="button paccc-md-image-remove"<?php echo $paccc_img ? '' : ' hidden'; ?> id="paccc-md-image-remove">Remove image</button>
+				</p>
+				<p class="description">Logo or photo shown on the member&rsquo;s page and directory listing. JPG, PNG, GIF or WebP.</p>
+			</td>
+		</tr>
+		<tr>
 			<th scope="row">Certification(s)</th>
 			<td>
 				<?php $cert_labels = paccc_md_cert_labels(); ?>
@@ -502,6 +520,13 @@ function paccc_md_save_member( $post_id, $post ) {
 	$states = paccc_md_states();
 	$state  = isset( $_POST['paccc_state'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_state'] ) ) : '';
 	update_post_meta( $post_id, 'paccc_state', isset( $states[ $state ] ) ? $state : '' );
+
+	// Image / logo: the media picker stores the chosen attachment id in a hidden
+	// field (empty when removed). set_member_image cleans up a previous
+	// member-owned upload it replaces.
+	if ( isset( $_POST['paccc_image_id'] ) ) {
+		paccc_md_set_member_image( $post_id, (int) $_POST['paccc_image_id'] );
+	}
 
 	// Certifications and CEUs each have a global list (edited inline from any
 	// member's edit screen) plus a per-member selection. The global lists are

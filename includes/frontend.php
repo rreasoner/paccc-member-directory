@@ -73,6 +73,90 @@ function paccc_md_display_url( $url ) {
 	return untrailingslashit( preg_replace( '#^https?://#i', '', (string) $url ) );
 }
 
+/* ---------------------------------------------------------------------------
+ * Member image (logo / photo)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * URL of a member's image at the requested size, or '' if none.
+ */
+function paccc_md_member_image_url( $image_id, $size = 'medium' ) {
+	$image_id = (int) $image_id;
+	if ( ! $image_id ) {
+		return '';
+	}
+	$url = wp_get_attachment_image_url( $image_id, $size );
+	return $url ? $url : '';
+}
+
+/**
+ * Delete an attachment only when it belongs to (was uploaded for) this member,
+ * so replacing / removing a member's photo never deletes an admin-picked Media
+ * Library image shared elsewhere.
+ */
+function paccc_md_delete_owned_attachment( $att_id, $member_post_id ) {
+	$att_id = (int) $att_id;
+	if ( ! $att_id ) {
+		return;
+	}
+	$att = get_post( $att_id );
+	if ( $att && 'attachment' === $att->post_type && (int) $att->post_parent === (int) $member_post_id ) {
+		wp_delete_attachment( $att_id, true );
+	}
+}
+
+/**
+ * Point a member at a new image, cleaning up the previous member-owned one.
+ */
+function paccc_md_set_member_image( $member_post_id, $new_att_id ) {
+	$new_att_id = (int) $new_att_id;
+	$old        = (int) get_post_meta( $member_post_id, 'paccc_image_id', true );
+	if ( $old && $old !== $new_att_id ) {
+		paccc_md_delete_owned_attachment( $old, $member_post_id );
+	}
+	if ( $new_att_id ) {
+		update_post_meta( $member_post_id, 'paccc_image_id', $new_att_id );
+	} else {
+		delete_post_meta( $member_post_id, 'paccc_image_id' );
+	}
+}
+
+/**
+ * Handle a front-end/back-end image upload for a member. Returns the new
+ * attachment id, 0 if no file, or WP_Error on a rejected/failed upload.
+ * $field is the $_FILES key.
+ */
+function paccc_md_handle_member_image_upload( $member_post_id, $field ) {
+	if ( empty( $_FILES[ $field ]['name'] ) ) {
+		return 0;
+	}
+	if ( ! isset( $_FILES[ $field ]['error'] ) || UPLOAD_ERR_OK !== (int) $_FILES[ $field ]['error'] ) {
+		return new WP_Error( 'paccc_upload', 'The image did not upload. Please try again.' );
+	}
+
+	$file    = $_FILES[ $field ];
+	$check   = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+	$allowed = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
+	if ( empty( $check['type'] ) || ! in_array( $check['type'], $allowed, true ) ) {
+		return new WP_Error( 'paccc_image_type', 'Please upload a JPG, PNG, GIF or WebP image.' );
+	}
+	$max = (int) apply_filters( 'paccc_md_max_image_bytes', 5 * 1024 * 1024 );
+	if ( isset( $file['size'] ) && (int) $file['size'] > $max ) {
+		return new WP_Error( 'paccc_image_size', 'That image is too large (5 MB max).' );
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/media.php';
+
+	$att_id = media_handle_upload( $field, $member_post_id );
+	if ( is_wp_error( $att_id ) ) {
+		return $att_id;
+	}
+	paccc_md_set_member_image( $member_post_id, $att_id );
+	return $att_id;
+}
+
 /**
  * Website + email rows for a member's detail <dl>. Both are optional, so each
  * row is emitted only when that field is set. Shared by the directory
@@ -304,12 +388,14 @@ function paccc_md_shortcode( $atts ) {
 							<div class="paccc-member-summary">
 								<?php
 								/*
-								 * Monogram avatar. Decorative only -- the business name sits
-								 * right beside it, so it's hidden from screen readers rather
-								 * than read out as a stray letter.
+								 * Member logo / photo, shown only when the member has one (no monogram
+								 * fallback on the listing). Decorative -- the business name sits beside it.
 								 */
 								?>
-								<span class="paccc-member-avatar" aria-hidden="true"><?php echo esc_html( '#' === $name_letter ? $name_first : $name_letter ); ?></span>
+								<?php $paccc_logo = paccc_md_member_image_url( $m->image_id, 'medium' ); ?>
+								<?php if ( $paccc_logo ) : ?>
+									<span class="paccc-member-logo" aria-hidden="true"><img src="<?php echo esc_url( $paccc_logo ); ?>" alt="" loading="lazy" /></span>
+								<?php endif; ?>
 								<div class="paccc-member-identity">
 									<h3 class="paccc-member-name">
 										<a href="<?php echo esc_url( $m->permalink ); ?>"><?php echo esc_html( $m->business_name ); ?></a>
@@ -342,6 +428,10 @@ function paccc_md_shortcode( $atts ) {
 								</div>
 							</div>
 							<div class="paccc-member-panel" id="<?php echo esc_attr( $panel_id ); ?>" hidden>
+								<?php $paccc_panel_img = paccc_md_member_image_url( $m->image_id, 'medium' ); ?>
+								<?php if ( $paccc_panel_img ) : ?>
+									<div class="paccc-member-panel-image"><img src="<?php echo esc_url( $paccc_panel_img ); ?>" alt="" loading="lazy" /></div>
+								<?php endif; ?>
 								<dl class="paccc-member-details">
 									<div>
 										<dt>Member Number</dt>
@@ -478,6 +568,12 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 		<?php endif; ?>
 
 		<div class="paccc-member-card">
+			<?php $paccc_img = paccc_md_member_image_url( $m->image_id, 'large' ); ?>
+			<?php if ( $paccc_img ) : ?>
+				<div class="paccc-member-image">
+					<img src="<?php echo esc_url( $paccc_img ); ?>" alt="<?php echo esc_attr( $m->business_name ); ?>" loading="lazy" />
+				</div>
+			<?php endif; ?>
 			<?php
 			/*
 			 * On the built-in single template the business name is the page's

@@ -4,6 +4,62 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 
+		/* ---------- Member image / logo (media library picker) ---------- */
+		(function () {
+			var idField = document.getElementById('paccc-md-image-id');
+			var wrap = document.getElementById('paccc-md-image');
+			var selectBtn = document.getElementById('paccc-md-image-select');
+			var removeBtn = document.getElementById('paccc-md-image-remove');
+			if (!idField || !wrap || !selectBtn || !window.wp || !window.wp.media) {
+				return;
+			}
+			var preview = wrap.querySelector('.paccc-md-image-preview');
+			var frame;
+
+			function showImage(url) {
+				if (preview) {
+					preview.src = url;
+					preview.hidden = false;
+				}
+				wrap.removeAttribute('data-empty');
+				if (removeBtn) { removeBtn.hidden = false; }
+				selectBtn.textContent = 'Replace image';
+			}
+
+			function clearImage() {
+				idField.value = '';
+				if (preview) { preview.src = ''; preview.hidden = true; }
+				wrap.setAttribute('data-empty', '1');
+				if (removeBtn) { removeBtn.hidden = true; }
+				selectBtn.textContent = 'Select image';
+			}
+
+			selectBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (frame) { frame.open(); return; }
+				frame = window.wp.media({
+					title: 'Select or upload an image',
+					button: { text: 'Use this image' },
+					library: { type: 'image' },
+					multiple: false
+				});
+				frame.on('select', function () {
+					var att = frame.state().get('selection').first().toJSON();
+					idField.value = att.id;
+					var url = (att.sizes && att.sizes.medium) ? att.sizes.medium.url : att.url;
+					showImage(url);
+				});
+				frame.open();
+			});
+
+			if (removeBtn) {
+				removeBtn.addEventListener('click', function (e) {
+					e.preventDefault();
+					clearImage();
+				});
+			}
+		})();
+
 		/* ---------- Copy buttons (unique links + shortcodes) ---------- */
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.paccc-md-copy');

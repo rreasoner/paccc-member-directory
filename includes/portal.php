@@ -177,9 +177,9 @@ function paccc_md_portal_shortcode( $atts ) {
 		return '<div class="paccc-portal paccc-directory-wrap"><p>No member profile is linked to your account yet. Please contact the administrator.</p><p><a href="' . esc_url( wp_logout_url( paccc_md_portal_url() ) ) . '">Log out</a></p></div>';
 	}
 
-	$m       = paccc_md_get_member( $post_id );
-	$states  = paccc_md_states();
-	$updated = isset( $_GET['paccc_portal'] ) && 'updated' === sanitize_key( wp_unslash( $_GET['paccc_portal'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	$m      = paccc_md_get_member( $post_id );
+	$states = paccc_md_states();
+	$status = isset( $_GET['paccc_portal'] ) ? sanitize_key( wp_unslash( $_GET['paccc_portal'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 
 	ob_start();
 	?>
@@ -189,13 +189,28 @@ function paccc_md_portal_shortcode( $atts ) {
 			<a href="<?php echo esc_url( wp_logout_url( paccc_md_portal_url() ) ); ?>">Log out</a>
 		</div>
 
-		<?php if ( $updated ) : ?>
+		<?php if ( 'updated' === $status ) : ?>
 			<div class="paccc-portal-notice">Your profile was updated.</div>
+		<?php elseif ( 'imgerror' === $status ) : ?>
+			<div class="paccc-portal-notice paccc-portal-notice-error">Your details were saved, but the image couldn&rsquo;t be uploaded. Please use a JPG, PNG, GIF or WebP under 5&nbsp;MB.</div>
 		<?php endif; ?>
 
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="paccc-portal-form">
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="paccc-portal-form" enctype="multipart/form-data">
 			<input type="hidden" name="action" value="paccc_md_portal_save" />
 			<?php wp_nonce_field( 'paccc_md_portal_save' ); ?>
+
+			<?php $paccc_img = paccc_md_member_image_url( $m->image_id, 'medium' ); ?>
+			<div class="paccc-portal-field paccc-portal-image">
+				<span class="paccc-portal-imglabel">Logo / Photo</span>
+				<?php if ( $paccc_img ) : ?>
+					<img src="<?php echo esc_url( $paccc_img ); ?>" alt="" class="paccc-portal-image-preview" />
+				<?php endif; ?>
+				<input type="file" name="paccc_image" accept="image/jpeg,image/png,image/gif,image/webp" />
+				<?php if ( $paccc_img ) : ?>
+					<label class="paccc-portal-imgdelete"><input type="checkbox" name="paccc_image_delete" value="1" /> Delete current image</label>
+				<?php endif; ?>
+				<span class="paccc-portal-note">Upload a JPG, PNG, GIF or WebP (5 MB max). Uploading a new image replaces the current one.</span>
+			</div>
 
 			<p class="paccc-portal-field">
 				<label for="paccc-portal-business">Business Name</label>
@@ -296,7 +311,21 @@ function paccc_md_portal_save() {
 	$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 	update_post_meta( $post_id, 'paccc_email', is_email( $email ) ? $email : '' );
 
-	wp_safe_redirect( add_query_arg( 'paccc_portal', 'updated', paccc_md_portal_url() ) );
+	// Image: delete on request, otherwise upload a new one (which replaces any
+	// existing member-owned image). Handled after fields so a bad upload only
+	// affects the image, not the rest of the save.
+	$img_error = false;
+	if ( ! empty( $_POST['paccc_image_delete'] ) ) {
+		paccc_md_set_member_image( $post_id, 0 );
+	} elseif ( ! empty( $_FILES['paccc_image']['name'] ) ) {
+		$res = paccc_md_handle_member_image_upload( $post_id, 'paccc_image' );
+		if ( is_wp_error( $res ) ) {
+			$img_error = true;
+		}
+	}
+
+	$args = array( 'paccc_portal' => $img_error ? 'imgerror' : 'updated' );
+	wp_safe_redirect( add_query_arg( $args, paccc_md_portal_url() ) );
 	exit;
 }
 add_action( 'admin_post_paccc_md_portal_save', 'paccc_md_portal_save' );
