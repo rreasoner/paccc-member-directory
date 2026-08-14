@@ -359,6 +359,12 @@ function paccc_md_shortcode( $atts ) {
 										<dt>Certification(s)</dt>
 										<dd><?php echo esc_html( $certs ? $certs : '—' ); ?></dd>
 									</div>
+									<?php if ( $m->ceus ) : ?>
+										<div>
+											<dt>CEU(s)</dt>
+											<dd><?php echo esc_html( implode( ', ', $m->ceus ) ); ?></dd>
+										</div>
+									<?php endif; ?>
 									<div>
 										<dt>Address</dt>
 										<dd>
@@ -508,6 +514,18 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 											<?php echo esc_html( $cert ); ?>
 										<?php endif; ?>
 									</li>
+								<?php endforeach; ?>
+							</ul>
+						</dd>
+					</div>
+				<?php endif; ?>
+				<?php if ( $m->ceus ) : ?>
+					<div class="paccc-member-ceu-row">
+						<dt>CEU(s)</dt>
+						<dd>
+							<ul class="paccc-ceu-list">
+								<?php foreach ( $m->ceus as $ceu ) : ?>
+									<li class="paccc-ceu"><?php echo esc_html( $ceu ); ?></li>
 								<?php endforeach; ?>
 							</ul>
 						</dd>

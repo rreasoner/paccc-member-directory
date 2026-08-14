@@ -93,103 +93,167 @@
 			}
 		});
 
-		/* ---------- Add a certification (add/edit form) ---------- */
-		var toggle = document.getElementById('paccc-md-add-cert-toggle');
-		var row = document.getElementById('paccc-md-add-cert-row');
-		var input = document.getElementById('paccc-md-new-cert');
-		var addBtn = document.getElementById('paccc-md-add-cert-btn');
-		var list = document.getElementById('paccc-md-cert-list');
-		var feedback = document.getElementById('paccc-md-cert-feedback');
+		/* ---------- Certifications: add / delete rows (client-side; saved with the member) ---------- */
+		(function () {
+			var certList = document.getElementById('paccc-md-cert-list');
+			var certToggle = document.getElementById('paccc-md-add-cert-toggle');
+			var certAddRow = document.getElementById('paccc-md-add-cert-row');
+			var certInput = document.getElementById('paccc-md-new-cert');
+			var certAddBtn = document.getElementById('paccc-md-add-cert-btn');
+			var certFeedback = document.getElementById('paccc-md-cert-feedback');
 
-		if (toggle && row) {
-			toggle.addEventListener('click', function (e) {
-				e.preventDefault();
-				row.hidden = !row.hidden;
-				if (!row.hidden && input) {
-					input.focus();
+			function certNote(msg) {
+				if (certFeedback) {
+					certFeedback.textContent = msg;
+					setTimeout(function () { certFeedback.textContent = ''; }, 4000);
 				}
-			});
-		}
+			}
 
-		if (addBtn && input && list) {
-			addBtn.addEventListener('click', submitCert);
-			input.addEventListener('keydown', function (e) {
-				if (e.key === 'Enter') {
+			if (certToggle && certAddRow) {
+				certToggle.addEventListener('click', function (e) {
 					e.preventDefault();
-					submitCert();
-				}
-			});
-		}
-
-		function submitCert() {
-			var name = (input.value || '').trim();
-			if (!name) {
-				note('Enter a certification name.');
-				return;
-			}
-			addBtn.disabled = true;
-
-			var body = new URLSearchParams();
-			body.append('action', 'paccc_md_add_cert');
-			body.append('nonce', window.PACCC_MD ? PACCC_MD.certNonce : '');
-			body.append('cert', name);
-
-			fetch((window.PACCC_MD && PACCC_MD.ajaxUrl) || window.ajaxurl, {
-				method: 'POST',
-				credentials: 'same-origin',
-				body: body
-			})
-				.then(function (r) { return r.json(); })
-				.then(function (res) {
-					addBtn.disabled = false;
-					if (!res || !res.success) {
-						note((res && res.data && res.data.message) || 'Could not add certification.');
-						return;
-					}
-					var certName = res.data.name;
-					var existing = findCheckbox(certName);
-					if (existing) {
-						existing.checked = true;
-						note('"' + certName + '" already exists — checked it for you.');
-					} else {
-						var label = document.createElement('label');
-						label.className = 'paccc-md-cert';
-						var cb = document.createElement('input');
-						cb.type = 'checkbox';
-						cb.name = 'certifications[]';
-						cb.setAttribute('value', certName);
-						cb.checked = true;
-						label.appendChild(cb);
-						label.appendChild(document.createTextNode(' ' + certName));
-						list.appendChild(label);
-						note('Added "' + certName + '".');
-					}
-					input.value = '';
-				})
-				.catch(function () {
-					addBtn.disabled = false;
-					note('Request failed. Please try again.');
+					certAddRow.hidden = !certAddRow.hidden;
+					if (!certAddRow.hidden && certInput) { certInput.focus(); }
 				});
-		}
+			}
 
-		function findCheckbox(value) {
-			var boxes = list.querySelectorAll('input[type="checkbox"]');
-			for (var i = 0; i < boxes.length; i++) {
-				if (boxes[i].value === value) {
-					return boxes[i];
+			function existingCertRow(code) {
+				if (!certList) { return null; }
+				var rows = certList.querySelectorAll('.paccc-md-cert-row');
+				for (var i = 0; i < rows.length; i++) {
+					if ((rows[i].getAttribute('data-cert') || '').toLowerCase() === code.toLowerCase()) { return rows[i]; }
+				}
+				return null;
+			}
+
+			function addCert() {
+				if (!certList || !certInput) { return; }
+				var code = (certInput.value || '').replace(/,/g, '').trim();
+				if (!code) { certNote('Enter a certification name.'); return; }
+				var dupe = existingCertRow(code);
+				if (dupe) {
+					var box = dupe.querySelector('input[type="checkbox"]');
+					if (box) { box.checked = true; }
+					certNote('"' + code + '" already exists \u2014 checked it for you.');
+					certInput.value = '';
+					return;
+				}
+				var row = document.createElement('div');
+				row.className = 'paccc-md-cert-row';
+				row.setAttribute('data-cert', code);
+
+				var lbl = document.createElement('label');
+				lbl.className = 'paccc-md-cert';
+				var cb = document.createElement('input');
+				cb.type = 'checkbox'; cb.name = 'paccc_certifications[]'; cb.value = code; cb.checked = true;
+				var strong = document.createElement('strong'); strong.textContent = code;
+				lbl.appendChild(cb); lbl.appendChild(document.createTextNode(' ')); lbl.appendChild(strong);
+
+				var label = document.createElement('input');
+				label.type = 'text'; label.className = 'paccc-md-cert-label regular-text';
+				label.name = 'paccc_cert_labels[' + code + ']';
+				label.placeholder = 'Full title, e.g. Certified Professional Animal Care Provider';
+
+				var hidden = document.createElement('input');
+				hidden.type = 'hidden'; hidden.name = 'paccc_cert_codes[]'; hidden.value = code;
+
+				var del = document.createElement('button');
+				del.type = 'button'; del.className = 'paccc-md-row-delete paccc-md-cert-delete';
+				del.setAttribute('aria-label', 'Delete this certification'); del.innerHTML = '&times;';
+
+				row.appendChild(lbl); row.appendChild(label); row.appendChild(hidden); row.appendChild(del);
+				certList.appendChild(row);
+				certNote('Added "' + code + '". It saves when you update the member.');
+				certInput.value = '';
+			}
+
+			if (certAddBtn) {
+				certAddBtn.addEventListener('click', addCert);
+				if (certInput) {
+					certInput.addEventListener('keydown', function (e) {
+						if (e.key === 'Enter') { e.preventDefault(); addCert(); }
+					});
 				}
 			}
-			return null;
-		}
+		})();
 
-		function note(msg) {
-			if (feedback) {
-				feedback.textContent = msg;
-				setTimeout(function () {
-					feedback.textContent = '';
-				}, 4000);
+		/* ---------- CEUs: add / edit / delete rows (client-side; saved with the member) ---------- */
+		(function () {
+			var ceuList = document.getElementById('paccc-md-ceu-list');
+			var ceuToggle = document.getElementById('paccc-md-add-ceu-toggle');
+			var ceuAddRow = document.getElementById('paccc-md-add-ceu-row');
+			var ceuInput = document.getElementById('paccc-md-new-ceu');
+			var ceuAddBtn = document.getElementById('paccc-md-add-ceu-btn');
+
+			if (ceuToggle && ceuAddRow) {
+				ceuToggle.addEventListener('click', function (e) {
+					e.preventDefault();
+					ceuAddRow.hidden = !ceuAddRow.hidden;
+					if (!ceuAddRow.hidden && ceuInput) { ceuInput.focus(); }
+				});
 			}
-		}
+
+			function addCeu() {
+				if (!ceuList || !ceuInput) { return; }
+				var text = (ceuInput.value || '').trim();
+				if (!text) { return; }
+				var row = document.createElement('div');
+				row.className = 'paccc-md-ceu-row';
+
+				var lbl = document.createElement('label');
+				lbl.className = 'paccc-md-ceu';
+				var cb = document.createElement('input');
+				cb.type = 'checkbox'; cb.name = 'paccc_member_ceus[]'; cb.value = text; cb.checked = true;
+				lbl.appendChild(cb);
+
+				var inp = document.createElement('input');
+				inp.type = 'text'; inp.className = 'paccc-md-ceu-input regular-text';
+				inp.name = 'paccc_ceus[]'; inp.value = text;
+
+				var del = document.createElement('button');
+				del.type = 'button'; del.className = 'paccc-md-row-delete paccc-md-ceu-delete';
+				del.setAttribute('aria-label', 'Delete this CEU'); del.innerHTML = '&times;';
+
+				row.appendChild(lbl); row.appendChild(inp); row.appendChild(del);
+				ceuList.appendChild(row);
+				ceuInput.value = '';
+			}
+
+			if (ceuAddBtn) {
+				ceuAddBtn.addEventListener('click', addCeu);
+				if (ceuInput) {
+					ceuInput.addEventListener('keydown', function (e) {
+						if (e.key === 'Enter') { e.preventDefault(); addCeu(); }
+					});
+				}
+			}
+
+			// Keep each CEU checkbox value synced to its text input so renaming a
+			// CEU keeps the member's selection pointing at the right value on save.
+			if (ceuList) {
+				ceuList.addEventListener('input', function (e) {
+					if (!e.target.classList || !e.target.classList.contains('paccc-md-ceu-input')) { return; }
+					var r = e.target.closest('.paccc-md-ceu-row');
+					var box = r && r.querySelector('input[type="checkbox"]');
+					if (box) { box.value = e.target.value; }
+				});
+			}
+		})();
+
+		/* ---------- Row delete (x on certification and CEU rows) ---------- */
+		document.addEventListener('click', function (e) {
+			var btn = e.target.closest('.paccc-md-row-delete');
+			if (!btn) { return; }
+			var row = btn.closest('.paccc-md-cert-row, .paccc-md-ceu-row');
+			if (!row) { return; }
+			var isCert = row.classList.contains('paccc-md-cert-row');
+			var name = isCert
+				? (row.getAttribute('data-cert') || 'this certification')
+				: (((row.querySelector('.paccc-md-ceu-input') || {}).value) || 'this CEU');
+			if (!window.confirm('Remove "' + name + '"? It will be unassigned from every member when you save.')) { return; }
+			if (row.parentNode) { row.parentNode.removeChild(row); }
+		});
+
 		/* ---------- Map style settings ---------- */
 
 		// WP's color picker (Iris) is a jQuery plugin.

@@ -333,7 +333,7 @@ function paccc_md_render_meta_box( $post ) {
 				<?php $cert_labels = paccc_md_cert_labels(); ?>
 				<div id="paccc-md-cert-list">
 					<?php foreach ( $certs as $cert ) : ?>
-						<div class="paccc-md-cert-row">
+						<div class="paccc-md-cert-row" data-cert="<?php echo esc_attr( $cert ); ?>">
 							<label class="paccc-md-cert">
 								<input type="checkbox" name="paccc_certifications[]" value="<?php echo esc_attr( $cert ); ?>"
 									<?php checked( in_array( $cert, $member->certifications, true ) ); ?> />
@@ -344,6 +344,10 @@ function paccc_md_render_meta_box( $post ) {
 								<?php echo $can_manage ? 'name="paccc_cert_labels[' . esc_attr( $cert ) . ']"' : 'readonly'; ?>
 								value="<?php echo esc_attr( isset( $cert_labels[ $cert ] ) ? $cert_labels[ $cert ] : '' ); ?>"
 								placeholder="Full title, e.g. Certified Professional Animal Care Provider" />
+							<?php if ( $can_manage ) : ?>
+								<input type="hidden" name="paccc_cert_codes[]" value="<?php echo esc_attr( $cert ); ?>" />
+								<button type="button" class="paccc-md-row-delete paccc-md-cert-delete" aria-label="Delete this certification">&times;</button>
+							<?php endif; ?>
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -351,7 +355,7 @@ function paccc_md_render_meta_box( $post ) {
 					Full titles appear on the frontend as a legend and as tooltips on each badge.
 					<?php if ( $can_manage ) : ?>
 						A title belongs to the certification itself, so editing it here updates it for every member.
-						Certifications can be removed under <em>Member Directory &rarr; Settings</em>.
+						Use the &times; to remove a certification (it is also stripped from every member); changes save with the member.
 					<?php else : ?>
 						Titles are shared across all members and can only be changed by an administrator.
 					<?php endif; ?>
@@ -364,6 +368,46 @@ function paccc_md_render_meta_box( $post ) {
 					<p id="paccc-md-add-cert-row" hidden>
 						<input type="text" id="paccc-md-new-cert" class="regular-text" placeholder="e.g. CPACT" />
 						<button type="button" class="button" id="paccc-md-add-cert-btn">Add</button>
+					</p>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row">CEU(s)</th>
+			<td>
+				<?php $all_ceus = paccc_md_ceus(); ?>
+				<div id="paccc-md-ceu-list">
+					<?php foreach ( $all_ceus as $ceu ) : ?>
+						<div class="paccc-md-ceu-row">
+							<label class="paccc-md-ceu">
+								<input type="checkbox" name="paccc_member_ceus[]" value="<?php echo esc_attr( $ceu ); ?>"
+									<?php checked( in_array( $ceu, $member->ceus, true ) ); ?> />
+							</label>
+							<input type="text"
+								class="paccc-md-ceu-input regular-text"
+								<?php echo $can_manage ? 'name="paccc_ceus[]"' : 'readonly'; ?>
+								value="<?php echo esc_attr( $ceu ); ?>" />
+							<?php if ( $can_manage ) : ?>
+								<button type="button" class="paccc-md-row-delete paccc-md-ceu-delete" aria-label="Delete this CEU">&times;</button>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<p class="description">
+					Continuing Education Units. Check the ones this member holds.
+					<?php if ( $can_manage ) : ?>
+						Edit a CEU&rsquo;s text to rename it, or use the &times; to remove it (it is also stripped from every member). Changes save with the member.
+					<?php else : ?>
+						The CEU list is managed by an administrator.
+					<?php endif; ?>
+				</p>
+				<?php if ( $can_manage ) : ?>
+					<p>
+						<a href="#" id="paccc-md-add-ceu-toggle">+ Add a CEU</a>
+					</p>
+					<p id="paccc-md-add-ceu-row" hidden>
+						<input type="text" id="paccc-md-new-ceu" class="regular-text" placeholder="e.g. Canine First Aid 2025" />
+						<button type="button" class="button" id="paccc-md-add-ceu-btn">Add</button>
 					</p>
 				<?php endif; ?>
 			</td>
@@ -459,28 +503,107 @@ function paccc_md_save_member( $post_id, $post ) {
 	$state  = isset( $_POST['paccc_state'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_state'] ) ) : '';
 	update_post_meta( $post_id, 'paccc_state', isset( $states[ $state ] ) ? $state : '' );
 
+	// Certifications and CEUs each have a global list (edited inline from any
+	// member's edit screen) plus a per-member selection. The global lists are
+	// site-wide settings, so rebuilding them from the submitted rows -- which is
+	// what makes the inline "+ Add" / edit / × work -- is gated on manage_options.
+	if ( current_user_can( 'manage_options' ) ) {
+
+		// Global certification list, from the hidden per-row code fields.
+		if ( isset( $_POST['paccc_cert_codes'] ) ) {
+			$old_certs = paccc_md_certifications();
+			$new_certs = array();
+			foreach ( (array) wp_unslash( $_POST['paccc_cert_codes'] ) as $code ) {
+				$code = sanitize_text_field( trim( $code ) );
+				if ( '' !== $code ) {
+					$new_certs[] = $code;
+				}
+			}
+			$new_certs = array_values( array_unique( $new_certs ) );
+			update_option( 'paccc_certifications', $new_certs );
+
+			// Shared titles, keeping only certifications that still exist.
+			$labels = array();
+			if ( isset( $_POST['paccc_cert_labels'] ) && is_array( $_POST['paccc_cert_labels'] ) ) {
+				foreach ( wp_unslash( $_POST['paccc_cert_labels'] ) as $abbr => $full ) {
+					$abbr = sanitize_text_field( $abbr );
+					$full = sanitize_text_field( $full );
+					if ( '' !== $abbr && '' !== $full && in_array( $abbr, $new_certs, true ) ) {
+						$labels[ $abbr ] = $full;
+					}
+				}
+			}
+			update_option( 'paccc_certification_labels', $labels );
+
+			$removed = array_diff( $old_certs, $new_certs );
+			if ( $removed ) {
+				paccc_md_strip_member_meta_values( 'paccc_certifications', $removed );
+			}
+		}
+
+		// Global CEU list, from the per-row text inputs.
+		if ( isset( $_POST['paccc_ceus'] ) ) {
+			$old_ceus = paccc_md_ceus();
+			$new_ceus = array();
+			foreach ( (array) wp_unslash( $_POST['paccc_ceus'] ) as $c ) {
+				$c = sanitize_text_field( trim( $c ) );
+				if ( '' !== $c ) {
+					$new_ceus[] = $c;
+				}
+			}
+			$new_ceus = array_values( array_unique( $new_ceus ) );
+			update_option( 'paccc_ceus', $new_ceus );
+
+			$removed = array_diff( $old_ceus, $new_ceus );
+			if ( $removed ) {
+				paccc_md_strip_member_meta_values( 'paccc_member_ceus', $removed );
+			}
+		}
+	}
+
+	// This member's certifications: checkbox values limited to the global list.
 	$known    = paccc_md_certifications();
 	$selected = isset( $_POST['paccc_certifications'] ) ? (array) wp_unslash( $_POST['paccc_certifications'] ) : array();
 	$selected = array_values( array_intersect( array_map( 'sanitize_text_field', $selected ), $known ) );
 	update_post_meta( $post_id, 'paccc_certifications', $selected );
 
-	// Certification titles are shared across all members, so they save to the
-	// global option rather than to this member's meta. That makes them a
-	// site-wide setting: gate the write behind manage_options so a user with
-	// edit access to a single member can't rewrite every member's cert titles.
-	if ( current_user_can( 'manage_options' ) && isset( $_POST['paccc_cert_labels'] ) && is_array( $_POST['paccc_cert_labels'] ) ) {
-		$labels = array();
-		foreach ( wp_unslash( $_POST['paccc_cert_labels'] ) as $abbr => $full ) {
-			$abbr = sanitize_text_field( $abbr );
-			$full = sanitize_text_field( $full );
-			if ( '' !== $abbr && '' !== $full ) {
-				$labels[ $abbr ] = $full;
-			}
-		}
-		update_option( 'paccc_certification_labels', $labels );
-	}
+	// This member's CEUs: checkbox values limited to the global list.
+	$known_ceus    = paccc_md_ceus();
+	$selected_ceus = isset( $_POST['paccc_member_ceus'] ) ? (array) wp_unslash( $_POST['paccc_member_ceus'] ) : array();
+	$selected_ceus = array_values( array_intersect( array_map( 'sanitize_text_field', $selected_ceus ), $known_ceus ) );
+	update_post_meta( $post_id, 'paccc_member_ceus', $selected_ceus );
 }
 add_action( 'save_post', 'paccc_md_save_member', 10, 2 );
+
+/**
+ * Remove the given values from a repeating member meta key across every member.
+ * Used when a certification or CEU is deleted from its global list so no member
+ * keeps a badge for something that no longer exists.
+ */
+function paccc_md_strip_member_meta_values( $meta_key, $remove ) {
+	$remove = array_values( array_filter( array_map( 'strval', (array) $remove ) ) );
+	if ( ! $remove ) {
+		return;
+	}
+	$ids = get_posts(
+		array(
+			'post_type'   => PACCC_MD_CPT,
+			'post_status' => 'any',
+			'numberposts' => -1,
+			'fields'      => 'ids',
+		)
+	);
+	foreach ( $ids as $id ) {
+		$vals = get_post_meta( $id, $meta_key, true );
+		if ( ! is_array( $vals ) ) {
+			continue;
+		}
+		$new = array_values( array_diff( $vals, $remove ) );
+		if ( count( $new ) !== count( $vals ) ) {
+			update_post_meta( $id, $meta_key, $new );
+		}
+	}
+}
 
 /* ---------------------------------------------------------------------------
  * Add-a-certification AJAX

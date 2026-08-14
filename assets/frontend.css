@@ -886,6 +886,31 @@
 	cursor: help;
 }
 
+/* CEU pills on the single member page. Outlined purple (vs. the gold-filled
+   certification pills) so continuing-education units read as a distinct kind
+   of credential. Names are free text, so they wrap rather than stay on one
+   line. */
+.paccc-ceu-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.paccc-ceu {
+	display: inline-block;
+	padding: 0.12rem 0.6rem;
+	background: #fff;
+	color: var(--paccc-purple);
+	border: 1px solid var(--paccc-purple);
+	border-radius: 999px;
+	font-size: 0.78em;
+	font-weight: 600;
+	line-height: 1.5;
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 600px) {
 	.paccc-controls { display: block; }

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Member Directory
  * Description:       Member directory for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via the [paccc_directory] shortcode.
- * Version:           2.19.0
+ * Version:           2.21.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.19.0' );
+define( 'PACCC_MD_VERSION', '2.21.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -102,6 +102,19 @@ function paccc_md_certifications() {
 }
 
 /**
+ * CEU (Continuing Education Unit) list -- a wp_option of free-text CEU names,
+ * added and edited from the member edit screen. Unlike certifications there is
+ * no default set; it starts empty.
+ */
+function paccc_md_ceus() {
+	$ceus = get_option( 'paccc_ceus', array() );
+	if ( ! is_array( $ceus ) ) {
+		$ceus = array();
+	}
+	return array_values( array_unique( array_filter( array_map( 'trim', $ceus ) ) ) );
+}
+
+/**
  * Register the member post type. The business name is the post title, so each
  * member gets a real permalink such as /paccc-certified-members/pet-resort-marketing/,
  * nested under the same base as the directory page.
@@ -165,12 +178,18 @@ function paccc_md_get_member( $post ) {
 		$certs = array_filter( array_map( 'trim', explode( ',', (string) $certs ) ) );
 	}
 
+	$ceus = get_post_meta( $post->ID, 'paccc_member_ceus', true );
+	if ( ! is_array( $ceus ) ) {
+		$ceus = array_filter( array_map( 'trim', explode( ',', (string) $ceus ) ) );
+	}
+
 	return (object) array(
 		'ID'             => $post->ID,
 		'business_name'  => $post->post_title,
 		'member_number'  => (string) get_post_meta( $post->ID, 'paccc_member_number', true ),
 		'member_name'    => (string) get_post_meta( $post->ID, 'paccc_member_name', true ),
 		'certifications' => array_values( $certs ),
+		'ceus'           => array_values( $ceus ),
 		'address1'       => (string) get_post_meta( $post->ID, 'paccc_address1', true ),
 		'address2'       => (string) get_post_meta( $post->ID, 'paccc_address2', true ),
 		'city'           => (string) get_post_meta( $post->ID, 'paccc_city', true ),

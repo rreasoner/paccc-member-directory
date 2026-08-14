@@ -70,6 +70,45 @@
 	max-width: 420px;
 }
 
+/* CEU rows in the member meta box (checkbox + editable text + delete) */
+.paccc-md-ceu-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0 0 8px;
+}
+
+.paccc-md-ceu-row .paccc-md-ceu {
+	flex: 0 0 auto;
+	margin: 0;
+}
+
+.paccc-md-ceu-row .paccc-md-ceu-input {
+	flex: 1 1 auto;
+	max-width: 420px;
+}
+
+#paccc-md-add-ceu-row {
+	margin-top: 6px;
+}
+
+/* The × delete button on certification and CEU rows */
+.paccc-md-row-delete {
+	flex: 0 0 auto;
+	padding: 0 6px;
+	border: 0;
+	background: transparent;
+	color: #b32d2e;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.paccc-md-row-delete:hover,
+.paccc-md-row-delete:focus {
+	color: #8a2322;
+}
+
 /* Certifications table on the settings screen */
 .paccc-md-cert-table {
 	max-width: 820px;

@@ -21,6 +21,7 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}paccc_members" ); // phpcs:ig
 
 delete_option( 'paccc_certifications' );
 delete_option( 'paccc_certification_labels' );
+delete_option( 'paccc_ceus' );
 delete_option( 'paccc_directory_page_id' );
 delete_option( 'paccc_md_db_version' );
 delete_option( 'paccc_md_map_font' );
