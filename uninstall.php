@@ -29,3 +29,9 @@ delete_option( 'paccc_md_map_font_weight' );
 delete_option( 'paccc_md_map_highlight' );
 delete_option( 'paccc_md_migrated_to_cpt' );
 delete_option( 'paccc_md_migrated_count' );
+delete_option( 'paccc_portal_page_id' );
+
+// Remove the member role (member WP accounts are left for the admin to review).
+if ( function_exists( 'remove_role' ) ) {
+	remove_role( 'paccc_member' );
+}

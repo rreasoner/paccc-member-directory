@@ -809,6 +809,19 @@ function paccc_md_render_settings() {
 			<div class="notice notice-error is-dismissible"><p>That file isn&rsquo;t an .xlsx spreadsheet. Export or save your file as .xlsx and try again.</p></div>
 		<?php elseif ( 'import_error' === $msg ) : ?>
 			<div class="notice notice-error is-dismissible"><p>The spreadsheet could not be read. Make sure it&rsquo;s a valid .xlsx file with the certified-directory columns.</p></div>
+		<?php elseif ( 'logins_created' === $msg ) : ?>
+			<?php
+			$lc = isset( $_GET['paccc_logins_created'] ) ? absint( $_GET['paccc_logins_created'] ) : 0;
+			$lf = isset( $_GET['paccc_logins_failed'] ) ? absint( $_GET['paccc_logins_failed'] ) : 0;
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p>
+					<?php echo esc_html( sprintf( 'Created %d member login%s.', $lc, 1 === $lc ? '' : 's' ) ); ?>
+					<?php if ( $lf ) : ?>
+						<?php echo esc_html( sprintf( ' %d could not be created (email already in use).', $lf ) ); ?>
+					<?php endif; ?>
+				</p>
+			</div>
 		<?php endif; ?>
 		<?php // phpcs:enable WordPress.Security.NonceVerification ?>
 
@@ -943,6 +956,8 @@ function paccc_md_render_settings() {
 		</table>
 
 		<?php paccc_md_render_import_section(); ?>
+
+		<?php paccc_md_render_logins_section(); ?>
 
 		<h2>Available shortcodes</h2>
 		<p class="description">

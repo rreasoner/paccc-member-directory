@@ -926,3 +926,108 @@
 		margin-top: 0.6rem;
 	}
 }
+
+/* ---- Member portal ---- */
+.paccc-portal {
+	background: #fff;
+	padding: 24px;
+	border: 1px solid var(--paccc-line);
+	border-radius: 16px;
+	box-shadow: var(--paccc-card-shadow);
+	color: var(--paccc-ink);
+}
+
+.paccc-portal-heading {
+	margin: 0 0 1rem;
+	color: var(--paccc-purple);
+}
+
+.paccc-portal-bar {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin: 0 0 1.25rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid var(--paccc-line);
+	font-size: 0.95em;
+}
+
+.paccc-portal-bar a {
+	color: var(--paccc-purple);
+}
+
+.paccc-portal-notice {
+	margin: 0 0 1rem;
+	padding: 0.6rem 0.9rem;
+	background: var(--paccc-gold-pale);
+	border-radius: 8px;
+	color: var(--paccc-ink);
+}
+
+.paccc-portal-field {
+	margin: 0 0 0.85rem;
+}
+
+.paccc-portal-field label {
+	display: block;
+	font-weight: 700;
+	color: var(--paccc-purple);
+	margin-bottom: 0.25rem;
+}
+
+.paccc-portal-field input,
+.paccc-portal-field select {
+	width: 100%;
+	max-width: 460px;
+	padding: 0.5rem 0.6rem;
+	border: 1px solid var(--paccc-line);
+	border-radius: 8px;
+	font: inherit;
+	color: var(--paccc-ink);
+	background: #fff;
+}
+
+.paccc-portal-readonly {
+	margin: 1.25rem 0;
+	padding: 1rem 1.25rem;
+	background: var(--paccc-cream);
+	border-radius: 12px;
+}
+
+.paccc-portal-readonly p {
+	margin: 0 0 0.4rem;
+}
+
+.paccc-portal-rolabel {
+	display: inline-block;
+	min-width: 140px;
+	font-weight: 700;
+	color: var(--paccc-purple);
+}
+
+.paccc-portal-note {
+	margin-top: 0.75rem;
+	font-size: 0.9em;
+	color: var(--paccc-ink-soft);
+}
+
+.paccc-portal-submit {
+	display: inline-flex;
+	align-items: center;
+	background: var(--paccc-purple);
+	color: var(--paccc-gold-pale);
+	border: 1px solid var(--paccc-purple);
+	border-radius: 999px;
+	padding: 0.5rem 1.3rem;
+	font: inherit;
+	font-weight: 600;
+	cursor: var(--paccc-cursor-paw);
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.paccc-portal-submit:hover,
+.paccc-portal-submit:focus-visible {
+	background: var(--paccc-gold);
+	color: var(--paccc-purple);
+}
