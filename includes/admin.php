@@ -50,6 +50,7 @@ function paccc_md_admin_assets( $hook ) {
 		array(
 			'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
 			'certNonce'    => wp_create_nonce( 'paccc_md_add_cert' ),
+			'imageNonce'   => wp_create_nonce( 'paccc_md_image' ),
 			'fonts'        => paccc_md_google_fonts(),
 			'weightLabels' => paccc_md_weight_labels(),
 		)
@@ -75,6 +76,7 @@ add_filter( 'enter_title_here', 'paccc_md_title_placeholder', 10, 2 );
 function paccc_md_columns( $columns ) {
 	return array(
 		'cb'             => isset( $columns['cb'] ) ? $columns['cb'] : '',
+		'paccc_photo'    => 'Photo',
 		'paccc_state'    => 'State',
 		'title'          => 'Business Name',
 		'member_name'    => 'Member Name',
@@ -92,6 +94,21 @@ function paccc_md_column_content( $column, $post_id ) {
 	}
 
 	switch ( $column ) {
+		case 'paccc_photo':
+			$img = paccc_md_member_image_url( $post_id, 'thumbnail' );
+			echo '<div class="paccc-md-list-photo" data-post="' . esc_attr( $post_id ) . '">';
+			echo '<span class="paccc-md-list-photo-preview">';
+			if ( $img ) {
+				echo '<img src="' . esc_url( $img ) . '" alt="" />';
+			}
+			echo '</span>';
+			echo '<span class="paccc-md-list-photo-actions">';
+			echo '<button type="button" class="button button-small paccc-md-list-photo-set">' . ( $img ? 'Replace' : 'Set' ) . '</button>';
+			echo '<button type="button" class="button button-small paccc-md-list-photo-remove"' . ( $img ? '' : ' style="display:none"' ) . '>Remove</button>';
+			echo '</span>';
+			echo '</div>';
+			break;
+
 		case 'paccc_state':
 			$states = paccc_md_states();
 			echo esc_html( isset( $states[ $member->state ] ) ? $states[ $member->state ] : $member->state );
@@ -121,6 +138,38 @@ function paccc_md_sortable_columns( $columns ) {
 	return $columns;
 }
 add_filter( 'manage_edit-' . PACCC_MD_CPT . '_sortable_columns', 'paccc_md_sortable_columns' );
+
+/**
+ * AJAX: set a member's image from the list-table Photo column.
+ */
+function paccc_md_ajax_set_image() {
+	check_ajax_referer( 'paccc_md_image', 'nonce' );
+	$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+	$att_id  = isset( $_POST['attachment_id'] ) ? absint( $_POST['attachment_id'] ) : 0;
+	if ( ! $post_id || PACCC_MD_CPT !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_send_json_error( array( 'message' => 'Not allowed.' ) );
+	}
+	if ( ! $att_id || ! wp_attachment_is_image( $att_id ) ) {
+		wp_send_json_error( array( 'message' => 'Please choose an image.' ) );
+	}
+	paccc_md_set_member_image( $post_id, $att_id );
+	wp_send_json_success( array( 'url' => paccc_md_member_image_url( $post_id, 'thumbnail' ) ) );
+}
+add_action( 'wp_ajax_paccc_md_set_image', 'paccc_md_ajax_set_image' );
+
+/**
+ * AJAX: remove a member's image from the list-table Photo column.
+ */
+function paccc_md_ajax_delete_image() {
+	check_ajax_referer( 'paccc_md_image', 'nonce' );
+	$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+	if ( ! $post_id || PACCC_MD_CPT !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_send_json_error( array( 'message' => 'Not allowed.' ) );
+	}
+	paccc_md_set_member_image( $post_id, 0 );
+	wp_send_json_success();
+}
+add_action( 'wp_ajax_paccc_md_delete_image', 'paccc_md_ajax_delete_image' );
 
 /* ---------------------------------------------------------------------------
  * Shortcodes reference panel (member list screen)

@@ -4,6 +4,78 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 
+		/* ---------- Member photo management from the list table ---------- */
+		(function () {
+			if (!window.wp || !window.wp.media) {
+				return;
+			}
+			var frame;
+			var activeCell;
+
+			function nonce() { return (window.PACCC_MD && PACCC_MD.imageNonce) || ''; }
+			function ajaxUrl() { return (window.PACCC_MD && PACCC_MD.ajaxUrl) || window.ajaxurl; }
+
+			function setPreview(cell, url) {
+				var preview = cell.querySelector('.paccc-md-list-photo-preview');
+				var setBtn = cell.querySelector('.paccc-md-list-photo-set');
+				var delBtn = cell.querySelector('.paccc-md-list-photo-remove');
+				if (preview) { preview.textContent = ''; }
+				if (url && preview) {
+					var img = document.createElement('img');
+					img.src = url;
+					img.alt = '';
+					preview.appendChild(img);
+				}
+				if (setBtn) { setBtn.textContent = url ? 'Replace' : 'Set'; }
+				if (delBtn) { delBtn.style.display = url ? '' : 'none'; }
+			}
+
+			function post(action, params, done) {
+				var body = new URLSearchParams();
+				body.append('action', action);
+				body.append('nonce', nonce());
+				Object.keys(params).forEach(function (k) { body.append(k, params[k]); });
+				fetch(ajaxUrl(), { method: 'POST', credentials: 'same-origin', body: body })
+					.then(function (r) { return r.json(); })
+					.then(done)
+					.catch(function () {});
+			}
+
+			document.addEventListener('click', function (e) {
+				var setBtn = e.target.closest('.paccc-md-list-photo-set');
+				var delBtn = e.target.closest('.paccc-md-list-photo-remove');
+				if (setBtn) {
+					e.preventDefault();
+					activeCell = setBtn.closest('.paccc-md-list-photo');
+					if (!frame) {
+						frame = window.wp.media({
+							title: 'Select or upload an image',
+							button: { text: 'Use this image' },
+							library: { type: 'image' },
+							multiple: false
+						});
+						frame.on('select', function () {
+							var att = frame.state().get('selection').first().toJSON();
+							if (!activeCell) { return; }
+							var cell = activeCell;
+							post('paccc_md_set_image', { post_id: cell.getAttribute('data-post'), attachment_id: att.id }, function (res) {
+								if (res && res.success && res.data && res.data.url) { setPreview(cell, res.data.url); }
+							});
+						});
+					}
+					frame.open();
+				} else if (delBtn) {
+					e.preventDefault();
+					var cell = delBtn.closest('.paccc-md-list-photo');
+					if (cell && window.confirm('Remove this member’s photo?')) {
+						post('paccc_md_delete_image', { post_id: cell.getAttribute('data-post') }, function (res) {
+							if (res && res.success) { setPreview(cell, ''); }
+						});
+					}
+				}
+			});
+		})();
+
 		/* ---------- Member image / logo (media library picker) ---------- */
 		(function () {
 			var idField = document.getElementById('paccc-md-image-id');

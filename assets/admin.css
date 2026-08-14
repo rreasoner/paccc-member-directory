@@ -109,6 +109,25 @@
 	color: #8a2322;
 }
 
+/* Member Photo column in the list table */
+.wp-list-table .column-paccc_photo {
+	width: 96px;
+}
+
+.paccc-md-list-photo-preview img {
+	display: block;
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	border-radius: 4px;
+	border: 1px solid #dcdcde;
+	margin-bottom: 5px;
+}
+
+.paccc-md-list-photo-actions .button {
+	margin: 0 4px 4px 0;
+}
+
 /* Member image / logo picker in the meta box */
 .paccc-md-image-preview {
 	display: block;
