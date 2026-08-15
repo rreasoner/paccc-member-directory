@@ -76,15 +76,15 @@
 	flex: 0 0 auto;
 	width: 110px;
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	justify-content: center;
 }
 
+/* Logo fills the square's width; height scales to keep it proportional. */
 .paccc-ceu-card-photo img {
-	max-height: 100px;
-	width: auto;
-	max-width: 100%;
+	width: 100%;
 	height: auto;
+	max-width: 100%;
 	border-radius: 6px;
 	background: #fff;
 }
@@ -175,6 +175,56 @@
 .paccc-ceu-apply-btn:focus {
 	background: #4c1c50;
 	color: #fff;
+}
+
+/* Pagination */
+.paccc-ceu-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 24px 0 4px;
+}
+
+.paccc-ceu-pagination[hidden] {
+	display: none;
+}
+
+.paccc-ceu-page-btn {
+	min-width: 40px;
+	padding: 7px 12px;
+	border: 1px solid var(--paccc-line);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--paccc-purple);
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.paccc-ceu-page-btn:hover:not(:disabled),
+.paccc-ceu-page-btn:focus:not(:disabled) {
+	background: var(--paccc-gold-pale);
+	border-color: var(--paccc-gold-deep);
+}
+
+.paccc-ceu-page-btn.is-current {
+	background: var(--paccc-purple);
+	border-color: var(--paccc-purple);
+	color: #fff;
+	cursor: default;
+}
+
+.paccc-ceu-page-btn:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.paccc-ceu-page-gap {
+	padding: 0 4px;
+	color: var(--paccc-ink-soft);
 }
 
 .paccc-ceu-empty {

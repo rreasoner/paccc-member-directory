@@ -124,6 +124,64 @@ function paccc_ceu_thumbnail_labels( $content, $post_id ) {
 }
 add_filter( 'admin_post_thumbnail_html', 'paccc_ceu_thumbnail_labels', 10, 2 );
 
+/**
+ * When a post type is nested under another menu (show_in_menu is a string),
+ * WordPress adds only its "All Items" link -- not "Add New", and not the
+ * attached taxonomy screen. Add "Add CEU" and "Providers" ourselves.
+ */
+function paccc_ceu_admin_submenus() {
+	$parent = 'edit.php?post_type=' . PACCC_MD_CPT;
+
+	add_submenu_page(
+		$parent,
+		'Add CEU',
+		'Add CEU',
+		'edit_posts',
+		'post-new.php?post_type=' . PACCC_CEU_CPT
+	);
+
+	add_submenu_page(
+		$parent,
+		'Providers',
+		'Providers',
+		'manage_categories',
+		'edit-tags.php?taxonomy=' . PACCC_CEU_TAX . '&amp;post_type=' . PACCC_CEU_CPT
+	);
+}
+add_action( 'admin_menu', 'paccc_ceu_admin_submenus' );
+
+/**
+ * Order the Member Directory submenu: All Members, Add New Member, All CEUs,
+ * Add CEU, Providers, Settings. Runs late so every item is already registered.
+ */
+function paccc_ceu_reorder_submenu() {
+	global $submenu;
+	$parent = 'edit.php?post_type=' . PACCC_MD_CPT;
+	if ( empty( $submenu[ $parent ] ) ) {
+		return;
+	}
+
+	$order = array(
+		'edit.php?post_type=' . PACCC_MD_CPT,
+		'post-new.php?post_type=' . PACCC_MD_CPT,
+		'edit.php?post_type=' . PACCC_CEU_CPT,
+		'post-new.php?post_type=' . PACCC_CEU_CPT,
+		'edit-tags.php?taxonomy=' . PACCC_CEU_TAX . '&amp;post_type=' . PACCC_CEU_CPT,
+		'paccc-md-settings',
+	);
+	$rank = array_flip( $order );
+
+	usort(
+		$submenu[ $parent ],
+		static function ( $a, $b ) use ( $rank ) {
+			$ra = isset( $rank[ $a[2] ] ) ? $rank[ $a[2] ] : 999;
+			$rb = isset( $rank[ $b[2] ] ) ? $rank[ $b[2] ] : 999;
+			return $ra <=> $rb;
+		}
+	);
+}
+add_action( 'admin_menu', 'paccc_ceu_reorder_submenu', 999 );
+
 /* -------------------------------------------------------------------------
  * Provider term meta: a logo and a website URL per provider.
  * ---------------------------------------------------------------------- */
@@ -417,6 +475,9 @@ function paccc_ceu_directory_shortcode( $atts ) {
 	wp_enqueue_style( 'paccc-ceu' );
 	wp_enqueue_script( 'paccc-ceu' );
 
+	$atts     = shortcode_atts( array( 'per_page' => 10 ), $atts, 'paccc_ceu_directory' );
+	$per_page = max( 0, (int) $atts['per_page'] );
+
 	$courses = paccc_ceu_all();
 
 	// Distinct amounts present, sorted numerically.
@@ -445,7 +506,7 @@ function paccc_ceu_directory_shortcode( $atts ) {
 
 	ob_start();
 	?>
-	<div class="paccc-ceu-directory" id="paccc-ceu-directory">
+	<div class="paccc-ceu-directory" id="paccc-ceu-directory" data-per-page="<?php echo esc_attr( $per_page ); ?>">
 		<div class="paccc-ceu-filters">
 			<label class="paccc-ceu-filter">
 				<span><?php esc_html_e( 'Number of CEUs', 'paccc-member-directory' ); ?></span>
@@ -503,6 +564,8 @@ function paccc_ceu_directory_shortcode( $atts ) {
 		</div>
 
 		<p class="paccc-ceu-empty" hidden><?php esc_html_e( 'No CEUs match your filters.', 'paccc-member-directory' ); ?></p>
+
+		<nav class="paccc-ceu-pagination" aria-label="<?php esc_attr_e( 'CEU list pages', 'paccc-member-directory' ); ?>" hidden></nav>
 	</div>
 	<?php
 	return ob_get_clean();

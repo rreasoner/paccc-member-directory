@@ -200,6 +200,10 @@ function paccc_md_shortcodes_reference() {
 			'desc' => 'The full public directory: interactive US map, state and A–Z name filters, and the member list. Put this on your directory page.',
 		),
 		array(
+			'code' => '[paccc_ceu_directory]',
+			'desc' => 'The Approved CEU Courses directory: photo, presenter, biography and an Apply Now button per course, with Number-of-CEUs and Provider dropdown filters. Shows 10 per page; add per_page="20" to change (per_page="0" shows all).',
+		),
+		array(
 			'code' => '[paccc_member]',
 			'desc' => 'The complete member info block (certifications, address, contact links, map). For a single-member layout in Beaver Themer or any page builder.',
 		),
