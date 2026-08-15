@@ -324,6 +324,9 @@ function paccc_md_portal_save() {
 		}
 	}
 
+	// A member edited their own profile -- refresh the cached directory list.
+	paccc_md_flush_directory_cache();
+
 	$args = array( 'paccc_portal' => $img_error ? 'imgerror' : 'updated' );
 	wp_safe_redirect( add_query_arg( $args, paccc_md_portal_url() ) );
 	exit;

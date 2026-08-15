@@ -403,6 +403,10 @@ function paccc_md_handle_import() {
 		$added++;
 	}
 
+	// New members fire save_post (which flushes), but country/region backfills
+	// on existing members use update_post_meta only -- flush once to be safe.
+	paccc_md_flush_directory_cache();
+
 	wp_safe_redirect(
 		paccc_md_settings_url(
 			array(

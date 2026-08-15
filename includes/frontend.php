@@ -119,6 +119,7 @@ function paccc_md_set_member_image( $member_post_id, $new_att_id ) {
 	} else {
 		delete_post_meta( $member_post_id, 'paccc_image_id' );
 	}
+	paccc_md_flush_directory_cache();
 }
 
 /**
@@ -232,49 +233,99 @@ function paccc_md_shortcode( $atts ) {
 		update_option( 'paccc_directory_page_id', (int) get_the_ID() );
 	}
 
-	$members = paccc_md_get_members();
-	$states  = paccc_md_states();
+	$states = paccc_md_states();
 
-	$state_counts = array();
-	foreach ( $members as $m ) {
-		if ( $m->state && isset( $states[ $m->state ] ) ) {
-			$state_counts[ $m->state ] = isset( $state_counts[ $m->state ] ) ? $state_counts[ $m->state ] + 1 : 1;
-		}
-	}
+	// The member list, its JSON-LD, and the derived state/country facets are
+	// costly to build on every hit but change only when a member changes, so
+	// cache them. paccc_md_flush_directory_cache() clears this on any change.
+	$cache = get_transient( 'paccc_md_directory_cache' );
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 1 !== (int) $cache['v'] ) {
+		$members = paccc_md_get_members();
 
-	// Non-US members drive the "Browse outside the U.S." dropdown: a tree of
-	// country => [ name, total, regions[ regionKey => count ] ]. A member's region
-	// key is its province/region, falling back to its city.
-	$countries    = paccc_md_countries();
-	$country_tree = array();
-	foreach ( $members as $m ) {
-		$code = $m->country ? $m->country : 'US';
-		if ( 'US' === $code || ! isset( $countries[ $code ] ) ) {
-			continue;
+		// Prime attachment (logo) caches in one pass so per-member image lookups
+		// don't each hit the database.
+		$paccc_img_ids = array();
+		foreach ( $members as $m ) {
+			if ( $m->image_id ) {
+				$paccc_img_ids[] = (int) $m->image_id;
+			}
 		}
-		if ( ! isset( $country_tree[ $code ] ) ) {
-			$country_tree[ $code ] = array(
-				'name'    => $countries[ $code ],
-				'total'   => 0,
-				'regions' => array(),
-			);
+		if ( $paccc_img_ids ) {
+			_prime_post_caches( array_values( array_unique( $paccc_img_ids ) ), false, true );
 		}
-		$country_tree[ $code ]['total']++;
-		$region = paccc_md_member_region_key( $m );
-		if ( '' !== $region ) {
-			$country_tree[ $code ]['regions'][ $region ] = isset( $country_tree[ $code ]['regions'][ $region ] ) ? $country_tree[ $code ]['regions'][ $region ] + 1 : 1;
+
+		$state_counts = array();
+		foreach ( $members as $m ) {
+			if ( $m->state && isset( $states[ $m->state ] ) ) {
+				$state_counts[ $m->state ] = isset( $state_counts[ $m->state ] ) ? $state_counts[ $m->state ] + 1 : 1;
+			}
 		}
+
+		// Non-US members drive the "Browse outside the U.S." dropdown: a tree of
+		// country => [ name, total, regions[ regionKey => count ] ].
+		$countries    = paccc_md_countries();
+		$country_tree = array();
+		foreach ( $members as $m ) {
+			$code = $m->country ? $m->country : 'US';
+			if ( 'US' === $code || ! isset( $countries[ $code ] ) ) {
+				continue;
+			}
+			if ( ! isset( $country_tree[ $code ] ) ) {
+				$country_tree[ $code ] = array(
+					'name'    => $countries[ $code ],
+					'total'   => 0,
+					'regions' => array(),
+				);
+			}
+			$country_tree[ $code ]['total']++;
+			$region = paccc_md_member_region_key( $m );
+			if ( '' !== $region ) {
+				$country_tree[ $code ]['regions'][ $region ] = isset( $country_tree[ $code ]['regions'][ $region ] ) ? $country_tree[ $code ]['regions'][ $region ] + 1 : 1;
+			}
+		}
+		uksort(
+			$country_tree,
+			static function ( $a, $b ) use ( $countries ) {
+				return strcasecmp( $countries[ $a ], $countries[ $b ] );
+			}
+		);
+		foreach ( $country_tree as &$paccc_ct ) {
+			uksort( $paccc_ct['regions'], 'strcasecmp' );
+		}
+		unset( $paccc_ct );
+
+		$total        = count( $members );
+		$members_html = paccc_md_render_members_list( $members );
+
+		$schema_html = '';
+		$paccc_sc    = paccc_md_directory_schema( $members );
+		if ( $paccc_sc ) {
+			$schema_html .= '<script type="application/ld+json">' . $paccc_sc . '</script>';
+		}
+		$paccc_tm = paccc_md_terms_schema();
+		if ( $paccc_tm ) {
+			$schema_html .= '<script type="application/ld+json">' . $paccc_tm . '</script>';
+		}
+
+		set_transient(
+			'paccc_md_directory_cache',
+			array(
+				'v'            => 1,
+				'members_html' => $members_html,
+				'schema'       => $schema_html,
+				'state_counts' => $state_counts,
+				'country_tree' => $country_tree,
+				'total'        => $total,
+			),
+			DAY_IN_SECONDS
+		);
+	} else {
+		$members_html = $cache['members_html'];
+		$schema_html  = $cache['schema'];
+		$state_counts = $cache['state_counts'];
+		$country_tree = $cache['country_tree'];
+		$total        = (int) $cache['total'];
 	}
-	uksort(
-		$country_tree,
-		static function ( $a, $b ) use ( $countries ) {
-			return strcasecmp( $countries[ $a ], $countries[ $b ] );
-		}
-	);
-	foreach ( $country_tree as &$paccc_ct ) {
-		uksort( $paccc_ct['regions'], 'strcasecmp' );
-	}
-	unset( $paccc_ct );
 
 	$map_settings = paccc_md_enqueue_frontend( true );
 
@@ -303,15 +354,7 @@ function paccc_md_shortcode( $atts ) {
 
 	ob_start();
 
-	$schema = paccc_md_directory_schema( $members );
-	if ( $schema ) {
-		echo '<script type="application/ld+json">' . $schema . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
-	}
-
-	$terms = paccc_md_terms_schema();
-	if ( $terms ) {
-		echo '<script type="application/ld+json">' . $terms . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
-	}
+	echo $schema_html; // phpcs:ignore WordPress.Security.EscapeOutput
 	?>
 	<div class="paccc-directory-wrap">
 		<?php
@@ -332,7 +375,7 @@ function paccc_md_shortcode( $atts ) {
 		if ( $show_intro ) :
 			$paccc_intro_text = $active_state
 				? paccc_md_state_intro_text( $active_state, isset( $state_counts[ $active_state ] ) ? (int) $state_counts[ $active_state ] : 0 )
-				: paccc_md_all_members_intro_text( count( $members ) );
+				: paccc_md_all_members_intro_text( $total );
 			?>
 			<p class="paccc-state-intro"><?php echo esc_html( $paccc_intro_text ); ?></p>
 			<?php
@@ -413,6 +456,47 @@ function paccc_md_shortcode( $atts ) {
 				</section>
 			<?php endif; ?>
 
+			<?php echo $members_html; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+
+			<nav class="paccc-pagination" aria-label="Member directory pages" hidden></nav>
+		</div>
+
+		<?php
+		/*
+		 * Crawlable per-state links. The dropdown/map filter client-side, so
+		 * these real <a> tags are how search engines (and AI crawlers) actually
+		 * discover the /paccc-certified-members/{state}/ pages. Only states with members.
+		 */
+		$paccc_linked_states = array_keys( array_intersect_key( $states, $state_counts ) );
+		?>
+		<?php if ( $paccc_linked_states ) : ?>
+			<nav class="paccc-state-links" aria-label="Browse certified members by state">
+				<h2 class="paccc-state-links-heading">Browse certified members by state</h2>
+				<ul class="paccc-state-links-list">
+					<?php foreach ( $paccc_linked_states as $paccc_lcode ) : ?>
+						<li>
+							<a href="<?php echo esc_url( paccc_md_state_url( $paccc_lcode ) ); ?>">
+								<?php echo esc_html( $states[ $paccc_lcode ] ); ?>
+								<span class="paccc-state-links-count">(<?php echo (int) $state_counts[ $paccc_lcode ]; ?>)</span>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+		<?php endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+add_shortcode( 'paccc_directory', 'paccc_md_shortcode' );
+
+/**
+ * The directory member-list markup as a string, so the shortcode can cache it.
+ */
+function paccc_md_render_members_list( $members ) {
+	$countries = paccc_md_countries();
+	ob_start();
+	?>
 			<div class="paccc-members" id="paccc-members">
 				<?php if ( ! $members ) : ?>
 					<p class="paccc-empty">No members in the directory just yet.</p>
@@ -459,9 +543,9 @@ function paccc_md_shortcode( $atts ) {
 								 * fallback on the listing). Decorative -- the business name sits beside it.
 								 */
 								?>
-								<?php $paccc_logo = paccc_md_member_image_url( $m->image_id, 'medium' ); ?>
+								<?php $paccc_logo = paccc_md_logo_img( $m->image_id ); ?>
 								<?php if ( $paccc_logo ) : ?>
-									<span class="paccc-member-logo" aria-hidden="true"><img src="<?php echo esc_url( $paccc_logo ); ?>" alt="" loading="lazy" /></span>
+									<span class="paccc-member-logo" aria-hidden="true"><?php echo $paccc_logo; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 								<?php endif; ?>
 								<div class="paccc-member-identity">
 									<h3 class="paccc-member-name">
@@ -546,38 +630,60 @@ function paccc_md_shortcode( $atts ) {
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</div>
-
-			<nav class="paccc-pagination" aria-label="Member directory pages" hidden></nav>
-		</div>
-
-		<?php
-		/*
-		 * Crawlable per-state links. The dropdown/map filter client-side, so
-		 * these real <a> tags are how search engines (and AI crawlers) actually
-		 * discover the /paccc-certified-members/{state}/ pages. Only states with members.
-		 */
-		$paccc_linked_states = paccc_md_states_with_members();
-		?>
-		<?php if ( $paccc_linked_states ) : ?>
-			<nav class="paccc-state-links" aria-label="Browse certified members by state">
-				<h2 class="paccc-state-links-heading">Browse certified members by state</h2>
-				<ul class="paccc-state-links-list">
-					<?php foreach ( $paccc_linked_states as $paccc_lcode ) : ?>
-						<li>
-							<a href="<?php echo esc_url( paccc_md_state_url( $paccc_lcode ) ); ?>">
-								<?php echo esc_html( $states[ $paccc_lcode ] ); ?>
-								<span class="paccc-state-links-count">(<?php echo (int) $state_counts[ $paccc_lcode ]; ?>)</span>
-							</a>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			</nav>
-		<?php endif; ?>
-	</div>
 	<?php
 	return ob_get_clean();
 }
-add_shortcode( 'paccc_directory', 'paccc_md_shortcode' );
+
+/**
+ * A member logo <img> sized for the directory listing. Uses the dedicated
+ * paccc-md-logo size when available (small file), else medium; always emits
+ * width/height + lazy loading to avoid layout shift.
+ */
+function paccc_md_logo_img( $image_id, $sizes = '120px' ) {
+	$image_id = (int) $image_id;
+	if ( ! $image_id ) {
+		return '';
+	}
+	$meta = wp_get_attachment_metadata( $image_id );
+	$size = ( is_array( $meta ) && ! empty( $meta['sizes']['paccc-md-logo'] ) ) ? 'paccc-md-logo' : 'medium';
+	return wp_get_attachment_image(
+		$image_id,
+		$size,
+		false,
+		array(
+			'alt'      => '',
+			'loading'  => 'lazy',
+			'decoding' => 'async',
+			'sizes'    => $sizes,
+		)
+	);
+}
+
+/**
+ * A compact, uncropped logo size (applies to new uploads; regenerate
+ * thumbnails to apply it to existing images).
+ */
+function paccc_md_register_image_sizes() {
+	add_image_size( 'paccc-md-logo', 240, 240, false );
+}
+add_action( 'after_setup_theme', 'paccc_md_register_image_sizes' );
+
+/**
+ * Directory cache: cleared whenever a member changes so the cached member
+ * list/schema rebuilds on the next directory view.
+ */
+function paccc_md_flush_directory_cache() {
+	delete_transient( 'paccc_md_directory_cache' );
+}
+function paccc_md_flush_directory_cache_typed( $post_id ) {
+	if ( PACCC_MD_CPT === get_post_type( $post_id ) ) {
+		delete_transient( 'paccc_md_directory_cache' );
+	}
+}
+add_action( 'save_post_' . PACCC_MD_CPT, 'paccc_md_flush_directory_cache' );
+add_action( 'before_delete_post', 'paccc_md_flush_directory_cache_typed' );
+add_action( 'trashed_post', 'paccc_md_flush_directory_cache_typed' );
+add_action( 'untrashed_post', 'paccc_md_flush_directory_cache_typed' );
 
 /* ---------------------------------------------------------------------------
  * Single member page
