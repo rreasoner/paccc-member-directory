@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       PACCC Member Directory
- * Description:       Member directory for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via the [paccc_directory] shortcode.
- * Version:           2.26.0
+ * Plugin Name:       PACCC Suite
+ * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
+ * Version:           2.26.2
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.26.0' );
+define( 'PACCC_MD_VERSION', '2.26.2' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -135,7 +135,7 @@ function paccc_md_register_cpt() {
 				'not_found'          => 'No members found.',
 				'not_found_in_trash' => 'No members found in Trash.',
 				'all_items'          => 'All Members',
-				'menu_name'          => 'Member Directory',
+				'menu_name'          => 'PACCC Suite',
 			),
 			'public'             => true,
 			'publicly_queryable' => true,
@@ -143,7 +143,9 @@ function paccc_md_register_cpt() {
 			'show_in_menu'       => true,
 			'show_in_rest'       => false,
 			'menu_icon'          => 'dashicons-pets',
-			'menu_position'      => 26,
+			// Position 3 sits it directly below Dashboard, above the first
+			// separator and Posts (5), so the client finds it immediately.
+			'menu_position'      => 3,
 			/*
 			 * No post type archive: an archive at the base would duplicate the
 			 * shortcode directory page. The directory page is the hub that links

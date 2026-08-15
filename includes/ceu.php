@@ -52,8 +52,8 @@ function paccc_ceu_register_cpt() {
 			'labels'          => array(
 				'name'               => 'CEUs',
 				'singular_name'      => 'CEU Course',
-				'add_new'            => 'Add CEU',
-				'add_new_item'       => 'Add CEU',
+				'add_new'            => 'Add New CEU',
+				'add_new_item'       => 'Add New CEU',
 				'edit_item'          => 'Edit CEU',
 				'new_item'           => 'New CEU',
 				'view_item'          => 'View CEU',
@@ -134,8 +134,8 @@ function paccc_ceu_admin_submenus() {
 
 	add_submenu_page(
 		$parent,
-		'Add CEU',
-		'Add CEU',
+		'Add New CEU',
+		'Add New CEU',
 		'edit_posts',
 		'post-new.php?post_type=' . PACCC_CEU_CPT
 	);
