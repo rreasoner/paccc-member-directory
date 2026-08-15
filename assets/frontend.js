@@ -272,6 +272,7 @@
 		var currentRegion = '';
 		var currentRegionLabel = '';
 		var countrySelect = document.getElementById('paccc-country-filter');
+		var countryChips = Array.prototype.slice.call(document.querySelectorAll('.paccc-country-chip'));
 
 		function stateUrl(code) {
 			if (!basePath) {
@@ -512,6 +513,10 @@
 			if (countrySelect) {
 				countrySelect.value = '';
 			}
+			countryChips.forEach(function (c) {
+				c.classList.remove('paccc-country-chip-current');
+				c.setAttribute('aria-pressed', 'false');
+			});
 			currentPage = 1;
 			if (select) {
 				select.value = currentState;
@@ -611,6 +616,12 @@
 				}
 			}
 
+			countryChips.forEach(function (c) {
+				var active = currentCountry && c.getAttribute('data-country') === currentCountry;
+				c.classList.toggle('paccc-country-chip-current', active);
+				c.setAttribute('aria-pressed', active ? 'true' : 'false');
+			});
+
 			if (currentCountry) {
 				var label = currentRegion ? currentRegionLabel + ', ' + currentCountryName : currentCountryName;
 				if (stateHeadingEl) {
@@ -647,6 +658,15 @@
 				setCountry(countrySelect.value);
 			});
 		}
+
+		// Country chips under the map: quick country-level filter, kept in sync
+		// with the dropdown. Clicking the active country's chip clears it.
+		countryChips.forEach(function (chip) {
+			chip.addEventListener('click', function () {
+				var code = chip.getAttribute('data-country') || '';
+				setCountry( ( currentCountry === code && ! currentRegion ) ? '' : code );
+			});
+		});
 
 		// Initial paint reflects the state the page was served at (from the URL),
 		// so sync the control + heading but don't push a new history entry.

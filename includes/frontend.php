@@ -385,6 +385,17 @@ function paccc_md_shortcode( $atts ) {
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
 
+		<?php if ( $country_tree ) : ?>
+			<div class="paccc-country-chips" role="group" aria-label="Countries with certified members outside the United States">
+				<span class="paccc-country-chips-label">Also certified in:</span>
+				<?php foreach ( $country_tree as $paccc_cc => $paccc_cinfo ) : ?>
+					<button type="button" class="paccc-country-chip" data-country="<?php echo esc_attr( $paccc_cc ); ?>" aria-pressed="false">
+						<?php echo esc_html( $paccc_cinfo['name'] ); ?> <span class="paccc-country-chip-count">(<?php echo (int) $paccc_cinfo['total']; ?>)</span>
+					</button>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+
 		<div class="paccc-directory-panel">
 			<div class="paccc-controls">
 				<label for="paccc-state-filter">Browse by state</label>

@@ -248,6 +248,59 @@
 	padding-bottom: 8px;
 }
 
+/* Country chips — non-US members, shown under the map as a visual cue and a
+   quick country-level filter (the dropdown handles province/city drill-down). */
+.paccc-country-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 0 auto 1.25rem;
+	max-width: 760px;
+	text-align: center;
+}
+
+.paccc-country-chips-label {
+	font-weight: 600;
+	color: var(--paccc-ink-soft);
+	font-size: 0.95em;
+}
+
+.paccc-country-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 14px;
+	border: 1px solid var(--paccc-line);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--paccc-purple);
+	font-size: 0.95em;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.paccc-country-chip:hover,
+.paccc-country-chip:focus-visible {
+	background: var(--paccc-gold-pale);
+	border-color: var(--paccc-gold-deep);
+}
+
+.paccc-country-chip-current,
+.paccc-country-chip-current:hover,
+.paccc-country-chip-current:focus-visible {
+	background: var(--paccc-purple);
+	border-color: var(--paccc-purple);
+	color: #fff;
+}
+
+.paccc-country-chip-count {
+	opacity: 0.75;
+	font-weight: 500;
+}
+
 /* Pagination */
 .paccc-pagination {
 	display: flex;
