@@ -335,6 +335,26 @@ function paccc_md_shortcode( $atts ) {
 	$active_state = paccc_md_current_state_code();
 	$dir_path     = paccc_md_directory_path();
 
+	// Per-country province maps, lazy-loaded on selection. Only countries with a
+	// bundled map file + real subdivisions; city-states fall back to the list.
+	$country_maps = array();
+	$ca_codes     = paccc_md_ca_province_codes();
+	if ( isset( $country_tree['CA'] ) ) {
+		$ca_regions = array();
+		foreach ( $country_tree['CA']['regions'] as $rname => $rcount ) {
+			if ( isset( $ca_codes[ $rname ] ) ) {
+				$ca_regions[ $ca_codes[ $rname ] ] = array( 'name' => $rname, 'count' => (int) $rcount );
+			}
+		}
+		if ( $ca_regions ) {
+			$country_maps['CA'] = array(
+				'map'     => 'canada',
+				'file'    => PACCC_MD_URL . 'assets/vendor/maps/canada.js',
+				'regions' => $ca_regions,
+			);
+		}
+	}
+
 	wp_enqueue_script( 'paccc-md-frontend', PACCC_MD_URL . 'assets/frontend.js', array( 'jsvectormap-us' ), PACCC_MD_VERSION, true );
 	wp_localize_script(
 		'paccc-md-frontend',
@@ -349,6 +369,7 @@ function paccc_md_shortcode( $atts ) {
 			'fontFamily'   => $map_settings['font'],
 			'fontWeight'   => $map_settings['weight'],
 			'perPage'      => (int) apply_filters( 'paccc_md_per_page', 20 ),
+			'countryMaps'  => $country_maps,
 		)
 	);
 
@@ -394,6 +415,8 @@ function paccc_md_shortcode( $atts ) {
 					</button>
 				<?php endforeach; ?>
 			</div>
+			<?php // A country's province map is lazy-loaded into this box when a country with a map is selected. ?>
+			<div id="paccc-country-map" class="paccc-country-map" hidden></div>
 		<?php endif; ?>
 
 		<div class="paccc-directory-panel">
@@ -643,6 +666,29 @@ function paccc_md_render_members_list( $members ) {
 			</div>
 	<?php
 	return ob_get_clean();
+}
+
+/**
+ * Canadian province/territory name => ISO 3166-2 code, matching the region
+ * codes in assets/vendor/maps/canada.js. Used to highlight/link map regions.
+ */
+function paccc_md_ca_province_codes() {
+	return array(
+		'Alberta'                   => 'CA-AB',
+		'British Columbia'          => 'CA-BC',
+		'Manitoba'                  => 'CA-MB',
+		'New Brunswick'             => 'CA-NB',
+		'Newfoundland and Labrador' => 'CA-NL',
+		'Northwest Territories'     => 'CA-NT',
+		'Nova Scotia'               => 'CA-NS',
+		'Nunavut'                   => 'CA-NU',
+		'Ontario'                   => 'CA-ON',
+		'Prince Edward Island'      => 'CA-PE',
+		'Quebec'                    => 'CA-QC',
+		'Saskatchewan'              => 'CA-SK',
+		'Yukon'                     => 'CA-YT',
+		'Yukon Territory'           => 'CA-YT',
+	);
 }
 
 /**

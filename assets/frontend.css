@@ -301,6 +301,22 @@
 	font-weight: 500;
 }
 
+/* Per-country province map, lazy-loaded under the chips when a country with a
+   map is selected. */
+.paccc-country-map {
+	max-width: 720px;
+	margin: 0 auto 1.25rem;
+}
+
+.paccc-country-map[hidden] {
+	display: none;
+}
+
+.paccc-country-map svg {
+	width: 100%;
+	height: auto;
+}
+
 /* Pagination */
 .paccc-pagination {
 	display: flex;

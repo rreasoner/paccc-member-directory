@@ -273,6 +273,11 @@
 		var currentRegionLabel = '';
 		var countrySelect = document.getElementById('paccc-country-filter');
 		var countryChips = Array.prototype.slice.call(document.querySelectorAll('.paccc-country-chip'));
+		var countryMaps = data.countryMaps || {};
+		var countryMapEl = document.getElementById('paccc-country-map');
+		var loadedMapFiles = {};
+		var countryMapInstance = null;
+		var countryMapShownFor = '';
 
 		function stateUrl(code) {
 			if (!basePath) {
@@ -517,6 +522,7 @@
 				c.classList.remove('paccc-country-chip-current');
 				c.setAttribute('aria-pressed', 'false');
 			});
+			updateCountryMap();
 			currentPage = 1;
 			if (select) {
 				select.value = currentState;
@@ -593,6 +599,66 @@
 			return (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
 		}
 
+		// Lazy-load a jsVectorMap map data file once, then run cb.
+		function loadScriptOnce(url, cb) {
+			if (loadedMapFiles[url] === true) { cb(); return; }
+			if (loadedMapFiles[url]) { loadedMapFiles[url].push(cb); return; }
+			loadedMapFiles[url] = [cb];
+			var sc = document.createElement('script');
+			sc.src = url;
+			sc.onload = function () { var cbs = loadedMapFiles[url]; loadedMapFiles[url] = true; cbs.forEach(function (f) { f(); }); };
+			sc.onerror = function () { var cbs = loadedMapFiles[url] || []; loadedMapFiles[url] = false; cbs.forEach(function (f) { f(); }); };
+			document.head.appendChild(sc);
+		}
+
+		// Show/hide + lazily build the province map for the selected country.
+		// Countries without a map (e.g. city-states) just hide the box.
+		function updateCountryMap() {
+			if (!countryMapEl) { return; }
+			var cfg = currentCountry ? countryMaps[currentCountry] : null;
+			if (!cfg) {
+				countryMapEl.hidden = true;
+				if (countryMapInstance) { try { countryMapInstance.destroy(); } catch (e) {} countryMapInstance = null; }
+				countryMapShownFor = '';
+				return;
+			}
+			countryMapEl.hidden = false;
+			if (countryMapShownFor === currentCountry && countryMapInstance) { return; }
+			var ccode = currentCountry;
+			loadScriptOnce(cfg.file, function () {
+				if (ccode !== currentCountry) { return; }
+				if (!window.jsVectorMap) { countryMapEl.hidden = true; return; }
+				if (countryMapInstance) { try { countryMapInstance.destroy(); } catch (e) {} countryMapInstance = null; }
+				countryMapEl.innerHTML = '';
+				var values = {};
+				Object.keys(cfg.regions).forEach(function (code) { values[code] = 'member'; });
+				try {
+					countryMapInstance = new jsVectorMap({
+						selector: '#paccc-country-map',
+						map: cfg.map,
+						backgroundColor: 'transparent',
+						zoomButtons: false,
+						zoomOnScroll: false,
+						draggable: false,
+						regionStyle: {
+							initial: { fill: '#ffffff', stroke: '#BFAE9C', strokeWidth: 0.8 },
+							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR }
+						},
+						series: { regions: [{ attribute: 'fill', scale: { member: highlight }, values: values }] },
+						onRegionTooltipShow: function (event, tooltip, code) {
+							var r = cfg.regions[code];
+							try { tooltip.text(tooltip.text() + (r ? ' \u2014 ' + r.count + ' member' + (r.count === 1 ? '' : 's') : ' \u2014 no members')); } catch (e) {}
+						},
+						onRegionClick: function (event, code) {
+							var r = cfg.regions[code];
+							if (r) { setCountry(ccode + '|' + r.name); }
+						}
+					});
+					countryMapShownFor = ccode;
+				} catch (e) { countryMapEl.hidden = true; }
+			});
+		}
+
 		function setCountry(value) {
 			var parts = (value || '').split('|');
 			currentCountry = parts[0] || '';
@@ -621,6 +687,8 @@
 				c.classList.toggle('paccc-country-chip-current', active);
 				c.setAttribute('aria-pressed', active ? 'true' : 'false');
 			});
+
+			updateCountryMap();
 
 			if (currentCountry) {
 				var label = currentRegion ? currentRegionLabel + ', ' + currentCountryName : currentCountryName;
