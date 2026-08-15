@@ -315,9 +315,12 @@
 	display: none;
 }
 
+/* The container's aspect-ratio is set inline per country (from the map's
+   dimensions) so it has a real height for jsVectorMap to size into. */
+.paccc-country-map .jvm-container,
 .paccc-country-map svg {
 	width: 100%;
-	height: auto;
+	height: 100%;
 }
 
 /* Pagination */

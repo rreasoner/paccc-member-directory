@@ -358,6 +358,8 @@ function paccc_md_shortcode( $atts ) {
 				'file'    => PACCC_MD_URL . 'assets/vendor/maps/canada.js',
 				'regions' => $ca_regions,
 				'names'   => $ca_names,
+				'w'       => 800,
+				'h'       => 681,
 			);
 		}
 	}

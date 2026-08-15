@@ -623,6 +623,9 @@
 				return;
 			}
 			countryMapEl.hidden = false;
+			// Give the box a real height (aspect from the map's own dimensions) so
+			// jsVectorMap has something to size into.
+			countryMapEl.style.aspectRatio = (cfg.w && cfg.h) ? (cfg.w + ' / ' + cfg.h) : '';
 			if (countryMapShownFor === currentCountry && countryMapInstance) { return; }
 			var ccode = currentCountry;
 			loadScriptOnce(cfg.file, function () {
@@ -674,6 +677,10 @@
 						}
 					});
 					countryMapShownFor = ccode;
+					// Re-measure once layout settles so the map fills the box.
+					if (window.requestAnimationFrame && countryMapInstance && countryMapInstance.updateSize) {
+						requestAnimationFrame(function () { try { countryMapInstance.updateSize(); } catch (e) {} });
+					}
 				} catch (e) { countryMapEl.hidden = true; }
 			});
 		}

@@ -941,6 +941,8 @@ function paccc_md_render_settings() {
 					<?php endif; ?>
 				</p>
 			</div>
+		<?php elseif ( 'cache_cleared' === $msg ) : ?>
+			<div class="notice notice-success is-dismissible"><p>Plugin cache cleared. The directory rebuilds on the next visit.</p></div>
 		<?php endif; ?>
 		<?php // phpcs:enable WordPress.Security.NonceVerification ?>
 
@@ -949,6 +951,16 @@ function paccc_md_render_settings() {
 				<p><?php echo esc_html( sprintf( '%d member(s) were migrated from the old directory table into member pages. The old table was left in place as a backup.', $migrated ) ); ?></p>
 			</div>
 		<?php endif; ?>
+
+		<div class="paccc-md-settings">
+			<h2>Cache</h2>
+			<p class="description">The directory caches its member list for speed. Clear it if a change isn&rsquo;t showing on the front-end directory. If you also run a page-caching plugin or CDN, purge that too and hard-refresh your browser.</p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'paccc_md_clear_cache', 'paccc_md_clear_cache_nonce' ); ?>
+				<input type="hidden" name="action" value="paccc_md_clear_cache" />
+				<button type="submit" class="button">Clear plugin cache</button>
+			</form>
+		</div>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="paccc_md_save_settings" />
@@ -1124,3 +1136,19 @@ function paccc_md_handle_save_settings() {
 	exit;
 }
 add_action( 'admin_post_paccc_md_save_settings', 'paccc_md_handle_save_settings' );
+
+/**
+ * Clear the plugin's own caches (the cached directory member list/schema).
+ */
+function paccc_md_handle_clear_cache() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Sorry, you are not allowed to do that.' );
+	}
+	check_admin_referer( 'paccc_md_clear_cache', 'paccc_md_clear_cache_nonce' );
+	if ( function_exists( 'paccc_md_flush_directory_cache' ) ) {
+		paccc_md_flush_directory_cache();
+	}
+	wp_safe_redirect( paccc_md_settings_url( array( 'paccc_msg' => 'cache_cleared' ) ) );
+	exit;
+}
+add_action( 'admin_post_paccc_md_clear_cache', 'paccc_md_handle_clear_cache' );
