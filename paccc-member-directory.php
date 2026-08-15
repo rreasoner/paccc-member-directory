@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Member Directory
  * Description:       Member directory for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via the [paccc_directory] shortcode.
- * Version:           2.24.1
+ * Version:           2.25.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.24.1' );
+define( 'PACCC_MD_VERSION', '2.25.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -384,6 +384,7 @@ function paccc_md_activate() {
 	paccc_md_register_cpt();
 	paccc_md_register_state_rewrite();
 	paccc_md_register_member_role();
+	paccc_ceu_register_cpt();
 
 	add_option( 'paccc_certifications', array( 'CPACP', 'CPACM', 'CPACO' ) );
 	add_option( 'paccc_directory_page_id', 0 );
@@ -403,9 +404,11 @@ require_once PACCC_MD_DIR . 'includes/fonts.php';
 require_once PACCC_MD_DIR . 'includes/state-urls.php';
 require_once PACCC_MD_DIR . 'includes/frontend.php';
 require_once PACCC_MD_DIR . 'includes/portal.php';
+require_once PACCC_MD_DIR . 'includes/ceu.php';
 if ( is_admin() ) {
 	require_once PACCC_MD_DIR . 'includes/admin.php';
 	require_once PACCC_MD_DIR . 'includes/import.php';
+	require_once PACCC_MD_DIR . 'includes/ceu-import.php';
 }
 
 /*

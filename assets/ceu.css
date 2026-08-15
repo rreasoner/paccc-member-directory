@@ -1,0 +1,208 @@
+/* PACCC Approved CEU Courses — [paccc_ceu_directory] front end.
+   Matches the member directory's warm palette. */
+
+.paccc-ceu-directory {
+	--paccc-ink: #33203A;
+	--paccc-ink-soft: #6B5570;
+	--paccc-purple: #622467;
+	--paccc-gold: #FECA38;
+	--paccc-gold-pale: #FDE5A6;
+	--paccc-gold-deep: #edad00;
+	--paccc-cream: #FBF5EC;
+	--paccc-line: #E3D5C8;
+	--paccc-card-shadow: 0 2px 10px rgba(51, 32, 58, 0.07);
+
+	max-width: 960px;
+	margin: 0 auto;
+	color: var(--paccc-ink);
+}
+
+/* Filter bar */
+.paccc-ceu-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 18px;
+	margin-bottom: 6px;
+}
+
+.paccc-ceu-filter {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--paccc-ink-soft);
+}
+
+.paccc-ceu-filter select {
+	min-width: 220px;
+	padding: 8px 12px;
+	border: 1px solid var(--paccc-line);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--paccc-ink);
+	font-size: 15px;
+	font-weight: 400;
+}
+
+.paccc-ceu-status {
+	margin: 10px 0 18px;
+	color: var(--paccc-ink-soft);
+	font-size: 14px;
+}
+
+/* Card list */
+.paccc-ceu-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.paccc-ceu-card {
+	display: flex;
+	gap: 18px;
+	padding: 18px 20px;
+	background: var(--paccc-cream);
+	border: 1px solid var(--paccc-line);
+	border-radius: 12px;
+	box-shadow: var(--paccc-card-shadow);
+}
+
+.paccc-ceu-card[hidden] {
+	display: none;
+}
+
+.paccc-ceu-card-photo {
+	flex: 0 0 auto;
+	width: 110px;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+}
+
+.paccc-ceu-card-photo img {
+	max-height: 100px;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.paccc-ceu-card-body {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.paccc-ceu-badge {
+	display: inline-block;
+	padding: 3px 12px;
+	margin-bottom: 8px;
+	background: var(--paccc-gold-pale);
+	color: var(--paccc-purple);
+	border: 1px solid var(--paccc-gold-deep);
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.paccc-ceu-card-title {
+	margin: 0 0 6px;
+	font-family: var(--paccc-heading-font, inherit);
+	font-size: 20px;
+	line-height: 1.25;
+	color: var(--paccc-ink);
+}
+
+.paccc-ceu-presenter {
+	margin: 0 0 4px;
+	color: var(--paccc-ink-soft);
+	font-size: 15px;
+}
+
+.paccc-ceu-presenter strong {
+	color: var(--paccc-purple);
+}
+
+.paccc-ceu-website {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.paccc-ceu-website a {
+	color: var(--paccc-purple);
+	text-decoration: none;
+	word-break: break-word;
+}
+
+.paccc-ceu-website a:hover {
+	text-decoration: underline;
+}
+
+.paccc-ceu-bio {
+	margin: 0 0 12px;
+	color: var(--paccc-ink);
+	font-size: 15px;
+	line-height: 1.55;
+}
+
+.paccc-ceu-bio p {
+	margin: 0 0 8px;
+}
+
+.paccc-ceu-bio p:last-child {
+	margin-bottom: 0;
+}
+
+.paccc-ceu-apply {
+	margin: 4px 0 0;
+}
+
+.paccc-ceu-apply-btn {
+	display: inline-block;
+	padding: 9px 22px;
+	background: var(--paccc-purple);
+	color: #fff;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 15px;
+	text-decoration: none;
+	transition: background 0.15s ease;
+}
+
+.paccc-ceu-apply-btn:hover,
+.paccc-ceu-apply-btn:focus {
+	background: #4c1c50;
+	color: #fff;
+}
+
+.paccc-ceu-empty {
+	margin: 24px 0;
+	padding: 20px;
+	text-align: center;
+	color: var(--paccc-ink-soft);
+	background: var(--paccc-cream);
+	border: 1px dashed var(--paccc-line);
+	border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+	.paccc-ceu-card {
+		flex-direction: column;
+	}
+
+	.paccc-ceu-card-photo {
+		width: auto;
+		justify-content: flex-start;
+	}
+
+	.paccc-ceu-filter select {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.paccc-ceu-filter {
+		flex: 1 1 100%;
+	}
+}
