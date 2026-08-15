@@ -242,6 +242,23 @@ function paccc_md_shortcode( $atts ) {
 		}
 	}
 
+	// Non-US members become country "chips" under the map. Keyed by country code,
+	// counted, and sorted by name so the row reads alphabetically.
+	$countries      = paccc_md_countries();
+	$country_counts = array();
+	foreach ( $members as $m ) {
+		$code = $m->country ? $m->country : 'US';
+		if ( 'US' !== $code && isset( $countries[ $code ] ) ) {
+			$country_counts[ $code ] = isset( $country_counts[ $code ] ) ? $country_counts[ $code ] + 1 : 1;
+		}
+	}
+	uksort(
+		$country_counts,
+		static function ( $a, $b ) use ( $countries ) {
+			return strcasecmp( $countries[ $a ], $countries[ $b ] );
+		}
+	);
+
 	$map_settings = paccc_md_enqueue_frontend( true );
 
 	// State pre-selected from the URL (e.g. /paccc-certified-members/texas/). The
@@ -307,6 +324,17 @@ function paccc_md_shortcode( $atts ) {
 
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
+
+		<?php if ( $country_counts ) : ?>
+			<div class="paccc-country-chips" role="group" aria-label="Filter members by country outside the United States">
+				<span class="paccc-country-chips-label">Also certified internationally:</span>
+				<?php foreach ( $country_counts as $code => $count ) : ?>
+					<button type="button" class="paccc-country-chip" data-country="<?php echo esc_attr( $code ); ?>" data-name="<?php echo esc_attr( $countries[ $code ] ); ?>" aria-pressed="false">
+						<?php echo esc_html( $countries[ $code ] ); ?> <span class="paccc-country-chip-count">(<?php echo (int) $count; ?>)</span>
+					</button>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
 
 		<div class="paccc-directory-panel">
 			<div class="paccc-controls">
@@ -377,14 +405,20 @@ function paccc_md_shortcode( $atts ) {
 						$mapq     = paccc_md_map_query( $m );
 						?>
 						<?php
-						$cert_labels = paccc_md_cert_labels();
-						$location    = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
+						$cert_labels  = paccc_md_cert_labels();
+						$country_code = $m->country ? $m->country : 'US';
+						$country_name = ( 'US' !== $country_code && isset( $countries[ $country_code ] ) ) ? $countries[ $country_code ] : '';
+						$location     = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
+						// Non-US members show their country in the location line.
+						if ( $country_name ) {
+							$location = $location ? $location . ', ' . $country_name : $country_name;
+						}
 						// Bucket for the A-Z name filter: first letter of the business
 						// name, uppercased; anything not A-Z (numbers, symbols) is "#".
 						$name_first  = strtoupper( substr( remove_accents( trim( (string) $m->business_name ) ), 0, 1 ) );
 						$name_letter = ( $name_first >= 'A' && $name_first <= 'Z' ) ? $name_first : '#';
 						?>
-						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
+						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-country="<?php echo esc_attr( $country_code ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
 							<div class="paccc-member-summary">
 								<?php
 								/*

@@ -525,6 +525,17 @@ function paccc_md_render_meta_box( $post ) {
 			<td><input type="text" id="paccc_zip" name="paccc_zip" value="<?php echo esc_attr( $member->zip ); ?>" class="regular-text" /></td>
 		</tr>
 		<tr>
+			<th scope="row"><label for="paccc_country">Country</label></th>
+			<td>
+				<select id="paccc_country" name="paccc_country">
+					<?php foreach ( paccc_md_countries() as $code => $name ) : ?>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $member->country, $code ); ?>><?php echo esc_html( $name ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<p class="description">Non-US members appear as country chips on the directory. US members use the state map.</p>
+			</td>
+		</tr>
+		<tr>
 			<th scope="row"><label for="paccc_website">Website</label></th>
 			<td>
 				<input type="url" id="paccc_website" name="paccc_website" value="<?php echo esc_attr( $member->website ); ?>" class="regular-text" placeholder="https://example.com" />
@@ -587,6 +598,10 @@ function paccc_md_save_member( $post_id, $post ) {
 	$states = paccc_md_states();
 	$state  = isset( $_POST['paccc_state'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_state'] ) ) : '';
 	update_post_meta( $post_id, 'paccc_state', isset( $states[ $state ] ) ? $state : '' );
+
+	$countries = paccc_md_countries();
+	$country   = isset( $_POST['paccc_country'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_country'] ) ) : 'US';
+	update_post_meta( $post_id, 'paccc_country', isset( $countries[ $country ] ) ? $country : 'US' );
 
 	// Image / logo: the media picker stores the chosen attachment id in a hidden
 	// field (empty when removed). set_member_image cleans up a previous

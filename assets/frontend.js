@@ -267,6 +267,9 @@
 		var currentState = data.initialState || '';
 		var currentLetter = '';
 		var currentPage = 1;
+		var currentCountry = '';
+		var currentCountryName = '';
+		var countryChips = Array.prototype.slice.call(document.querySelectorAll('.paccc-country-chip'));
 
 		function stateUrl(code) {
 			if (!basePath) {
@@ -371,7 +374,11 @@
 		// letter. Empty currentState / currentLetter mean "no restriction".
 		function matchingRows() {
 			return rows.filter(function (r) {
-				if (currentState && r.getAttribute('data-state') !== currentState) {
+				if (currentCountry) {
+					if (r.getAttribute('data-country') !== currentCountry) {
+						return false;
+					}
+				} else if (currentState && r.getAttribute('data-state') !== currentState) {
 					return false;
 				}
 				if (currentLetter && r.getAttribute('data-letter') !== currentLetter) {
@@ -411,7 +418,12 @@
 			if (!statusEl) {
 				return;
 			}
-			var where = currentState ? ' in ' + (names[currentState] || currentState) : '';
+			var where = '';
+			if (currentCountry) {
+				where = ' in ' + currentCountryName;
+			} else if (currentState) {
+				where = ' in ' + (names[currentState] || currentState);
+			}
 			var startingWith = currentLetter ? ' starting with ' + currentLetter : '';
 			var qualifier = where + startingWith;
 			if (!total) {
@@ -488,6 +500,12 @@
 		// already current (initial load, browser back/forward).
 		function setState(st, scroll, pushUrl) {
 			currentState = st || '';
+			currentCountry = '';
+			currentCountryName = '';
+			countryChips.forEach(function (c) {
+				c.classList.remove('paccc-country-chip-current');
+				c.setAttribute('aria-pressed', 'false');
+			});
 			currentPage = 1;
 			if (select) {
 				select.value = currentState;
@@ -552,6 +570,65 @@
 		alphaButtons.forEach(function (b) {
 			b.addEventListener('click', function () {
 				setLetter(b.getAttribute('data-letter') || '');
+			});
+		});
+
+		// Country chips (non-US members). Mutually exclusive with the state
+		// filter: choosing a country clears any active state and the map.
+		function countryIntroText(n, name) {
+			if (n < 1) {
+				return 'There are no PACCC-certified members in ' + name + ' yet.';
+			}
+			return (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
+		}
+
+		function setCountry(code) {
+			var turnOff = currentCountry === code;
+			currentCountry = turnOff ? '' : (code || '');
+			currentCountryName = '';
+			currentState = '';
+			if (select) {
+				select.value = '';
+			}
+			currentPage = 1;
+
+			countryChips.forEach(function (c) {
+				var active = !turnOff && c.getAttribute('data-country') === currentCountry;
+				c.classList.toggle('paccc-country-chip-current', active);
+				c.setAttribute('aria-pressed', active ? 'true' : 'false');
+				if (active) {
+					currentCountryName = c.getAttribute('data-name') || currentCountry;
+				}
+			});
+
+			if (currentCountry) {
+				if (stateHeadingEl) {
+					stateHeadingEl.textContent = 'PACCC Certified Members in ' + currentCountryName;
+					stateHeadingEl.hidden = false;
+				}
+				if (stateIntroEl) {
+					var n = rows.filter(function (r) { return r.getAttribute('data-country') === currentCountry; }).length;
+					stateIntroEl.textContent = countryIntroText(n, currentCountryName);
+					stateIntroEl.hidden = false;
+				}
+				updateViewStateBtn('');
+				updateLiveStateSpans('');
+			} else {
+				updateStateHeading('');
+				updateStateIntro('');
+				updateLiveStateSpans('');
+				updateViewStateBtn('');
+			}
+
+			render();
+			if (listEl) {
+				listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		}
+
+		countryChips.forEach(function (chip) {
+			chip.addEventListener('click', function () {
+				setCountry(chip.getAttribute('data-country') || '');
 			});
 		});
 

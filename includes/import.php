@@ -269,6 +269,16 @@ function paccc_md_handle_import() {
 	}
 	$us_codes = paccc_md_states();
 
+	// Country: full name or 2-letter code -> code; blank defaults to US.
+	$country_map = array();
+	foreach ( paccc_md_countries() as $ccode => $cname ) {
+		$country_map[ strtolower( $cname ) ] = $ccode;
+		$country_map[ strtolower( $ccode ) ] = $ccode;
+	}
+	foreach ( array( 'usa' => 'US', 'u.s.a.' => 'US', 'u.s.' => 'US', 'united states of america' => 'US', 'uk' => 'GB', 'u.k.' => 'GB', 'great britain' => 'GB', 'england' => 'GB' ) as $alias => $ccode ) {
+		$country_map[ $alias ] = $ccode;
+	}
+
 	global $wpdb;
 	$existing = array_flip( (array) $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_paccc_import_profile_url' AND meta_value <> ''" ) ); // phpcs:ignore WordPress.DB
 
@@ -328,6 +338,9 @@ function paccc_md_handle_import() {
 		}
 		$email = sanitize_email( $get( $row, 'email' ) );
 
+		$country_raw = strtolower( $get( $row, 'country' ) );
+		$country     = isset( $country_map[ $country_raw ] ) ? $country_map[ $country_raw ] : 'US';
+
 		$post_id = wp_insert_post(
 			array(
 				'post_type'   => PACCC_MD_CPT,
@@ -349,6 +362,7 @@ function paccc_md_handle_import() {
 		update_post_meta( $post_id, 'paccc_address2', '' );
 		update_post_meta( $post_id, 'paccc_city', sanitize_text_field( $addr['city'] ) );
 		update_post_meta( $post_id, 'paccc_state', $state );
+		update_post_meta( $post_id, 'paccc_country', $country );
 		update_post_meta( $post_id, 'paccc_zip', sanitize_text_field( $addr['zip'] ) );
 		update_post_meta( $post_id, 'paccc_website', esc_url_raw( $website ) );
 		update_post_meta( $post_id, 'paccc_email', is_email( $email ) ? $email : '' );
