@@ -645,6 +645,25 @@
 							hover: { fillOpacity: 0.85, cursor: PACCC_PAW_CURSOR }
 						},
 						series: { regions: [{ attribute: 'fill', scale: { member: highlight }, values: values }] },
+						labels: {
+							regions: {
+								render: function (code) { return (cfg.names && cfg.names[code]) || code.split('-')[1]; },
+								offsets: function (code) {
+									var o = (window.PACCC_MAP_LABELS && window.PACCC_MAP_LABELS[cfg.map]) || {};
+									return o[code] || [0, 0];
+								}
+							}
+						},
+						regionLabelStyle: {
+							initial: {
+								fontFamily: data.fontFamily ? '"' + data.fontFamily + '", inherit' : 'inherit',
+								fontSize: '9px',
+								fontWeight: data.fontWeight || '500',
+								fill: '#4A3550',
+								cursor: PACCC_PAW_CURSOR
+							},
+							hover: { cursor: PACCC_PAW_CURSOR }
+						},
 						onRegionTooltipShow: function (event, tooltip, code) {
 							var r = cfg.regions[code];
 							try { tooltip.text(tooltip.text() + (r ? ' \u2014 ' + r.count + ' member' + (r.count === 1 ? '' : 's') : ' \u2014 no members')); } catch (e) {}
@@ -716,7 +735,11 @@
 			}
 
 			render();
-			if (listEl) {
+			// Whole-country selection (chip / "All of ...") scrolls to the top of
+			// that country's map; a province selection scrolls to the results.
+			if (currentCountry && !currentRegion && countryMaps[currentCountry] && countryMapEl) {
+				countryMapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			} else if (listEl) {
 				listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			}
 		}

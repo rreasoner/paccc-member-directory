@@ -347,10 +347,17 @@ function paccc_md_shortcode( $atts ) {
 			}
 		}
 		if ( $ca_regions ) {
+			$ca_names = array();
+			foreach ( $ca_codes as $nm => $cd ) {
+				if ( ! isset( $ca_names[ $cd ] ) ) {
+					$ca_names[ $cd ] = $nm;
+				}
+			}
 			$country_maps['CA'] = array(
 				'map'     => 'canada',
 				'file'    => PACCC_MD_URL . 'assets/vendor/maps/canada.js',
 				'regions' => $ca_regions,
+				'names'   => $ca_names,
 			);
 		}
 	}
