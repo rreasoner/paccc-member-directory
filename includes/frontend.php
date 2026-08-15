@@ -242,22 +242,39 @@ function paccc_md_shortcode( $atts ) {
 		}
 	}
 
-	// Non-US members become country "chips" under the map. Keyed by country code,
-	// counted, and sorted by name so the row reads alphabetically.
-	$countries      = paccc_md_countries();
-	$country_counts = array();
+	// Non-US members drive the "Browse outside the U.S." dropdown: a tree of
+	// country => [ name, total, regions[ regionKey => count ] ]. A member's region
+	// key is its province/region, falling back to its city.
+	$countries    = paccc_md_countries();
+	$country_tree = array();
 	foreach ( $members as $m ) {
 		$code = $m->country ? $m->country : 'US';
-		if ( 'US' !== $code && isset( $countries[ $code ] ) ) {
-			$country_counts[ $code ] = isset( $country_counts[ $code ] ) ? $country_counts[ $code ] + 1 : 1;
+		if ( 'US' === $code || ! isset( $countries[ $code ] ) ) {
+			continue;
+		}
+		if ( ! isset( $country_tree[ $code ] ) ) {
+			$country_tree[ $code ] = array(
+				'name'    => $countries[ $code ],
+				'total'   => 0,
+				'regions' => array(),
+			);
+		}
+		$country_tree[ $code ]['total']++;
+		$region = paccc_md_member_region_key( $m );
+		if ( '' !== $region ) {
+			$country_tree[ $code ]['regions'][ $region ] = isset( $country_tree[ $code ]['regions'][ $region ] ) ? $country_tree[ $code ]['regions'][ $region ] + 1 : 1;
 		}
 	}
 	uksort(
-		$country_counts,
+		$country_tree,
 		static function ( $a, $b ) use ( $countries ) {
 			return strcasecmp( $countries[ $a ], $countries[ $b ] );
 		}
 	);
+	foreach ( $country_tree as &$paccc_ct ) {
+		uksort( $paccc_ct['regions'], 'strcasecmp' );
+	}
+	unset( $paccc_ct );
 
 	$map_settings = paccc_md_enqueue_frontend( true );
 
@@ -325,17 +342,6 @@ function paccc_md_shortcode( $atts ) {
 		<div id="paccc-map" class="paccc-map" role="img" aria-label="Map of the United States highlighting states with PACCC members"></div>
 		<p class="paccc-map-hint">Tap a highlighted state to meet its members &mdash; or browse below.</p>
 
-		<?php if ( $country_counts ) : ?>
-			<div class="paccc-country-chips" role="group" aria-label="Filter members by country outside the United States">
-				<span class="paccc-country-chips-label">Also certified internationally:</span>
-				<?php foreach ( $country_counts as $code => $count ) : ?>
-					<button type="button" class="paccc-country-chip" data-country="<?php echo esc_attr( $code ); ?>" data-name="<?php echo esc_attr( $countries[ $code ] ); ?>" aria-pressed="false">
-						<?php echo esc_html( $countries[ $code ] ); ?> <span class="paccc-country-chip-count">(<?php echo (int) $count; ?>)</span>
-					</button>
-				<?php endforeach; ?>
-			</div>
-		<?php endif; ?>
-
 		<div class="paccc-directory-panel">
 			<div class="paccc-controls">
 				<label for="paccc-state-filter">Browse by state</label>
@@ -356,6 +362,21 @@ function paccc_md_shortcode( $atts ) {
 				 */
 				?>
 				<a class="paccc-view-state" href="<?php echo $active_state ? esc_url( paccc_md_state_url( $active_state ) ) : '#'; ?>"<?php echo $active_state ? '' : ' hidden'; ?>>View State Page</a>
+
+				<?php if ( $country_tree ) : ?>
+					<label for="paccc-country-filter" class="paccc-country-label">Browse outside the U.S.</label>
+					<select id="paccc-country-filter">
+						<option value="">Outside the U.S.</option>
+						<?php foreach ( $country_tree as $cc => $info ) : ?>
+							<optgroup label="<?php echo esc_attr( $info['name'] ); ?>">
+								<option value="<?php echo esc_attr( $cc ); ?>"><?php echo esc_html( 'All of ' . $info['name'] . ' (' . (int) $info['total'] . ')' ); ?></option>
+								<?php foreach ( $info['regions'] as $paccc_region_key => $rcount ) : ?>
+									<option value="<?php echo esc_attr( $cc . '|' . $paccc_region_key ); ?>"><?php echo esc_html( $paccc_region_key . ' (' . (int) $rcount . ')' ); ?></option>
+								<?php endforeach; ?>
+							</optgroup>
+						<?php endforeach; ?>
+					</select>
+				<?php endif; ?>
 			</div>
 
 			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of business name">
@@ -407,18 +428,30 @@ function paccc_md_shortcode( $atts ) {
 						<?php
 						$cert_labels  = paccc_md_cert_labels();
 						$country_code = $m->country ? $m->country : 'US';
-						$country_name = ( 'US' !== $country_code && isset( $countries[ $country_code ] ) ) ? $countries[ $country_code ] : '';
-						$location     = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
-						// Non-US members show their country in the location line.
-						if ( $country_name ) {
-							$location = $location ? $location . ', ' . $country_name : $country_name;
+						$is_intl      = ( 'US' !== $country_code && isset( $countries[ $country_code ] ) );
+						// Region key groups the member in the "outside the U.S." dropdown.
+						$region_key   = $is_intl ? paccc_md_member_region_key( $m ) : '';
+						if ( $is_intl ) {
+							// International location: City, Province, Country (no US state).
+							$bits = array();
+							if ( $m->city ) {
+								$bits[] = $m->city;
+							}
+							$prov = trim( (string) $m->region );
+							if ( $prov && 0 !== strcasecmp( $prov, (string) $m->city ) ) {
+								$bits[] = $prov;
+							}
+							$bits[]   = $countries[ $country_code ];
+							$location = implode( ', ', $bits );
+						} else {
+							$location = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
 						}
 						// Bucket for the A-Z name filter: first letter of the business
 						// name, uppercased; anything not A-Z (numbers, symbols) is "#".
 						$name_first  = strtoupper( substr( remove_accents( trim( (string) $m->business_name ) ), 0, 1 ) );
 						$name_letter = ( $name_first >= 'A' && $name_first <= 'Z' ) ? $name_first : '#';
 						?>
-						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-country="<?php echo esc_attr( $country_code ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
+						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-country="<?php echo esc_attr( $country_code ); ?>" data-region="<?php echo esc_attr( $region_key ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
 							<div class="paccc-member-summary">
 								<?php
 								/*

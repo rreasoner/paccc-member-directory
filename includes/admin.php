@@ -532,7 +532,14 @@ function paccc_md_render_meta_box( $post ) {
 						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $member->country, $code ); ?>><?php echo esc_html( $name ); ?></option>
 					<?php endforeach; ?>
 				</select>
-				<p class="description">Non-US members appear as country chips on the directory. US members use the state map.</p>
+				<p class="description">Non-US members appear under the "Browse outside the U.S." dropdown. US members use the state map.</p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="paccc_region">Province / Region</label></th>
+			<td>
+				<input type="text" id="paccc_region" name="paccc_region" value="<?php echo esc_attr( $member->region ); ?>" class="regular-text" />
+				<p class="description">For non-US members (e.g. Ontario). Groups them under their country in the directory; falls back to City if left blank.</p>
 			</td>
 		</tr>
 		<tr>
@@ -602,6 +609,7 @@ function paccc_md_save_member( $post_id, $post ) {
 	$countries = paccc_md_countries();
 	$country   = isset( $_POST['paccc_country'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_country'] ) ) : 'US';
 	update_post_meta( $post_id, 'paccc_country', isset( $countries[ $country ] ) ? $country : 'US' );
+	update_post_meta( $post_id, 'paccc_region', isset( $_POST['paccc_region'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_region'] ) ) : '' );
 
 	// Image / logo: the media picker stores the chosen attachment id in a hidden
 	// field (empty when removed). set_member_image cleans up a previous
@@ -907,7 +915,7 @@ function paccc_md_render_settings() {
 						<?php echo esc_html( sprintf( ' Skipped %d already in the directory.', $skipped ) ); ?>
 					<?php endif; ?>
 					<?php if ( $country_set ) : ?>
-						<?php echo esc_html( sprintf( ' Updated the country on %d existing member%s.', $country_set, 1 === $country_set ? '' : 's' ) ); ?>
+						<?php echo esc_html( sprintf( ' Updated the country/region on %d existing member%s.', $country_set, 1 === $country_set ? '' : 's' ) ); ?>
 					<?php endif; ?>
 					<?php if ( $failed ) : ?>
 						<?php echo esc_html( sprintf( ' %d row%s could not be added.', $failed, 1 === $failed ? '' : 's' ) ); ?>

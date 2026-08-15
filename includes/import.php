@@ -313,17 +313,29 @@ function paccc_md_handle_import() {
 
 		$profile = $get( $row, 'profile url' );
 
-		// Country: full name or code -> code; blank defaults to US.
+		// Country + region (province/state as listed). Region is stored only for
+		// non-US members; US members use the state map.
 		$country_raw = strtolower( $get( $row, 'country' ) );
 		$country     = isset( $country_map[ $country_raw ] ) ? $country_map[ $country_raw ] : 'US';
+		$region      = ( 'US' !== $country ) ? sanitize_text_field( $get( $row, 'state / province' ) ) : '';
 
 		if ( '' !== $profile && isset( $existing[ $profile ] ) ) {
-			// Already imported: backfill the country (the field is newer than the
+			// Already imported: backfill country + region (both newer than the
 			// original import) without creating a duplicate.
 			$eid = (int) $existing[ $profile ];
-			if ( $eid && (string) get_post_meta( $eid, 'paccc_country', true ) !== $country ) {
-				update_post_meta( $eid, 'paccc_country', $country );
-				$country_set++;
+			if ( $eid ) {
+				$changed = false;
+				if ( (string) get_post_meta( $eid, 'paccc_country', true ) !== $country ) {
+					update_post_meta( $eid, 'paccc_country', $country );
+					$changed = true;
+				}
+				if ( (string) get_post_meta( $eid, 'paccc_region', true ) !== $region ) {
+					update_post_meta( $eid, 'paccc_region', $region );
+					$changed = true;
+				}
+				if ( $changed ) {
+					$country_set++;
+				}
 			}
 			$skipped++;
 			continue;
@@ -379,6 +391,7 @@ function paccc_md_handle_import() {
 		update_post_meta( $post_id, 'paccc_city', sanitize_text_field( $addr['city'] ) );
 		update_post_meta( $post_id, 'paccc_state', $state );
 		update_post_meta( $post_id, 'paccc_country', $country );
+		update_post_meta( $post_id, 'paccc_region', $region );
 		update_post_meta( $post_id, 'paccc_zip', sanitize_text_field( $addr['zip'] ) );
 		update_post_meta( $post_id, 'paccc_website', esc_url_raw( $website ) );
 		update_post_meta( $post_id, 'paccc_email', is_email( $email ) ? $email : '' );

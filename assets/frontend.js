@@ -269,7 +269,9 @@
 		var currentPage = 1;
 		var currentCountry = '';
 		var currentCountryName = '';
-		var countryChips = Array.prototype.slice.call(document.querySelectorAll('.paccc-country-chip'));
+		var currentRegion = '';
+		var currentRegionLabel = '';
+		var countrySelect = document.getElementById('paccc-country-filter');
 
 		function stateUrl(code) {
 			if (!basePath) {
@@ -378,6 +380,9 @@
 					if (r.getAttribute('data-country') !== currentCountry) {
 						return false;
 					}
+					if (currentRegion && r.getAttribute('data-region') !== currentRegion) {
+						return false;
+					}
 				} else if (currentState && r.getAttribute('data-state') !== currentState) {
 					return false;
 				}
@@ -420,7 +425,7 @@
 			}
 			var where = '';
 			if (currentCountry) {
-				where = ' in ' + currentCountryName;
+				where = ' in ' + (currentRegion ? currentRegionLabel + ', ' + currentCountryName : currentCountryName);
 			} else if (currentState) {
 				where = ' in ' + (names[currentState] || currentState);
 			}
@@ -502,10 +507,11 @@
 			currentState = st || '';
 			currentCountry = '';
 			currentCountryName = '';
-			countryChips.forEach(function (c) {
-				c.classList.remove('paccc-country-chip-current');
-				c.setAttribute('aria-pressed', 'false');
-			});
+			currentRegion = '';
+			currentRegionLabel = '';
+			if (countrySelect) {
+				countrySelect.value = '';
+			}
 			currentPage = 1;
 			if (select) {
 				select.value = currentState;
@@ -573,8 +579,8 @@
 			});
 		});
 
-		// Country chips (non-US members). Mutually exclusive with the state
-		// filter: choosing a country clears any active state and the map.
+		// "Browse outside the U.S." dropdown. Value is "" (none), a country code
+		// ("CA"), or "CC|Region". Mutually exclusive with the state filter/map.
 		function countryIntroText(n, name) {
 			if (n < 1) {
 				return 'There are no PACCC-certified members in ' + name + ' yet.';
@@ -582,33 +588,43 @@
 			return (n === 1 ? 'There is 1 PACCC-certified member in ' : 'There are ' + n + ' PACCC-certified members in ') + name + '.';
 		}
 
-		function setCountry(code) {
-			var turnOff = currentCountry === code;
-			currentCountry = turnOff ? '' : (code || '');
-			currentCountryName = '';
+		function setCountry(value) {
+			var parts = (value || '').split('|');
+			currentCountry = parts[0] || '';
+			currentRegion = parts[1] || '';
+			currentRegionLabel = currentRegion;
 			currentState = '';
 			if (select) {
 				select.value = '';
 			}
+			if (countrySelect) {
+				countrySelect.value = value || '';
+			}
 			currentPage = 1;
 
-			countryChips.forEach(function (c) {
-				var active = !turnOff && c.getAttribute('data-country') === currentCountry;
-				c.classList.toggle('paccc-country-chip-current', active);
-				c.setAttribute('aria-pressed', active ? 'true' : 'false');
-				if (active) {
-					currentCountryName = c.getAttribute('data-name') || currentCountry;
+			// Country name comes from the selected option's optgroup label.
+			currentCountryName = currentCountry;
+			if (countrySelect && countrySelect.selectedOptions && countrySelect.selectedOptions.length) {
+				var grp = countrySelect.selectedOptions[0].parentNode;
+				if (grp && grp.label) {
+					currentCountryName = grp.label;
 				}
-			});
+			}
 
 			if (currentCountry) {
+				var label = currentRegion ? currentRegionLabel + ', ' + currentCountryName : currentCountryName;
 				if (stateHeadingEl) {
-					stateHeadingEl.textContent = 'PACCC Certified Members in ' + currentCountryName;
+					stateHeadingEl.textContent = 'PACCC Certified Members in ' + label;
 					stateHeadingEl.hidden = false;
 				}
 				if (stateIntroEl) {
-					var n = rows.filter(function (r) { return r.getAttribute('data-country') === currentCountry; }).length;
-					stateIntroEl.textContent = countryIntroText(n, currentCountryName);
+					var n = rows.filter(function (r) {
+						if (r.getAttribute('data-country') !== currentCountry) {
+							return false;
+						}
+						return !currentRegion || r.getAttribute('data-region') === currentRegion;
+					}).length;
+					stateIntroEl.textContent = countryIntroText(n, label);
 					stateIntroEl.hidden = false;
 				}
 				updateViewStateBtn('');
@@ -626,11 +642,11 @@
 			}
 		}
 
-		countryChips.forEach(function (chip) {
-			chip.addEventListener('click', function () {
-				setCountry(chip.getAttribute('data-country') || '');
+		if (countrySelect) {
+			countrySelect.addEventListener('change', function () {
+				setCountry(countrySelect.value);
 			});
-		});
+		}
 
 		// Initial paint reflects the state the page was served at (from the URL),
 		// so sync the control + heading but don't push a new history entry.

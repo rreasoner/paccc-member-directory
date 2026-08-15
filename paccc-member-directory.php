@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Suite
  * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
- * Version:           2.27.1
+ * Version:           2.28.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.27.1' );
+define( 'PACCC_MD_VERSION', '2.28.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -248,10 +248,24 @@ function paccc_md_get_member( $post ) {
 		'state'          => (string) get_post_meta( $post->ID, 'paccc_state', true ),
 		'zip'            => (string) get_post_meta( $post->ID, 'paccc_zip', true ),
 		'country'        => ( $c = (string) get_post_meta( $post->ID, 'paccc_country', true ) ) ? $c : 'US',
+		'region'         => (string) get_post_meta( $post->ID, 'paccc_region', true ),
 		'website'        => (string) get_post_meta( $post->ID, 'paccc_website', true ),
 		'email'          => (string) get_post_meta( $post->ID, 'paccc_email', true ),
 		'permalink'      => get_permalink( $post ),
 	);
+}
+
+/**
+ * The grouping key for a non-US member in the "Browse outside the U.S."
+ * dropdown: its province/region, falling back to its city. Empty if neither
+ * is set (the member then only shows under "All of {country}").
+ */
+function paccc_md_member_region_key( $m ) {
+	$region = trim( (string) ( isset( $m->region ) ? $m->region : '' ) );
+	if ( '' === $region ) {
+		$region = trim( (string) $m->city );
+	}
+	return $region;
 }
 
 /**
