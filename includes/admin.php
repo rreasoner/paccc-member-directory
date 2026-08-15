@@ -895,15 +895,19 @@ function paccc_md_render_settings() {
 			<div class="notice notice-error is-dismissible"><p>That certification no longer exists.</p></div>
 		<?php elseif ( 'imported' === $msg ) : ?>
 			<?php
-			$added   = isset( $_GET['paccc_added'] ) ? absint( $_GET['paccc_added'] ) : 0;
-			$skipped = isset( $_GET['paccc_skipped'] ) ? absint( $_GET['paccc_skipped'] ) : 0;
-			$failed  = isset( $_GET['paccc_failed'] ) ? absint( $_GET['paccc_failed'] ) : 0;
+			$added       = isset( $_GET['paccc_added'] ) ? absint( $_GET['paccc_added'] ) : 0;
+			$skipped     = isset( $_GET['paccc_skipped'] ) ? absint( $_GET['paccc_skipped'] ) : 0;
+			$failed      = isset( $_GET['paccc_failed'] ) ? absint( $_GET['paccc_failed'] ) : 0;
+			$country_set = isset( $_GET['paccc_country_set'] ) ? absint( $_GET['paccc_country_set'] ) : 0;
 			?>
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<?php echo esc_html( sprintf( 'Imported %d member%s.', $added, 1 === $added ? '' : 's' ) ); ?>
 					<?php if ( $skipped ) : ?>
 						<?php echo esc_html( sprintf( ' Skipped %d already in the directory.', $skipped ) ); ?>
+					<?php endif; ?>
+					<?php if ( $country_set ) : ?>
+						<?php echo esc_html( sprintf( ' Updated the country on %d existing member%s.', $country_set, 1 === $country_set ? '' : 's' ) ); ?>
 					<?php endif; ?>
 					<?php if ( $failed ) : ?>
 						<?php echo esc_html( sprintf( ' %d row%s could not be added.', $failed, 1 === $failed ? '' : 's' ) ); ?>

@@ -280,7 +280,13 @@ function paccc_md_handle_import() {
 	}
 
 	global $wpdb;
-	$existing = array_flip( (array) $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_paccc_import_profile_url' AND meta_value <> ''" ) ); // phpcs:ignore WordPress.DB
+	// Map already-imported Profile URL -> member post ID, so a re-upload can
+	// backfill fields (e.g. Country) onto existing members instead of only
+	// skipping them.
+	$existing = array();
+	foreach ( (array) $wpdb->get_results( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_paccc_import_profile_url' AND meta_value <> ''" ) as $er ) { // phpcs:ignore WordPress.DB
+		$existing[ $er->meta_value ] = (int) $er->post_id;
+	}
 
 	$next = (int) preg_replace( '/\D/', '', paccc_md_next_member_number() );
 	if ( ! $next ) {
@@ -291,9 +297,10 @@ function paccc_md_handle_import() {
 		@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 	}
 
-	$added   = 0;
-	$skipped = 0;
-	$failed  = 0;
+	$added       = 0;
+	$skipped     = 0;
+	$failed      = 0;
+	$country_set = 0;
 
 	foreach ( $rows as $row ) {
 		$name     = $get( $row, 'name' );
@@ -305,7 +312,19 @@ function paccc_md_handle_import() {
 		}
 
 		$profile = $get( $row, 'profile url' );
+
+		// Country: full name or code -> code; blank defaults to US.
+		$country_raw = strtolower( $get( $row, 'country' ) );
+		$country     = isset( $country_map[ $country_raw ] ) ? $country_map[ $country_raw ] : 'US';
+
 		if ( '' !== $profile && isset( $existing[ $profile ] ) ) {
+			// Already imported: backfill the country (the field is newer than the
+			// original import) without creating a duplicate.
+			$eid = (int) $existing[ $profile ];
+			if ( $eid && (string) get_post_meta( $eid, 'paccc_country', true ) !== $country ) {
+				update_post_meta( $eid, 'paccc_country', $country );
+				$country_set++;
+			}
 			$skipped++;
 			continue;
 		}
@@ -338,9 +357,6 @@ function paccc_md_handle_import() {
 		}
 		$email = sanitize_email( $get( $row, 'email' ) );
 
-		$country_raw = strtolower( $get( $row, 'country' ) );
-		$country     = isset( $country_map[ $country_raw ] ) ? $country_map[ $country_raw ] : 'US';
-
 		$post_id = wp_insert_post(
 			array(
 				'post_type'   => PACCC_MD_CPT,
@@ -369,7 +385,7 @@ function paccc_md_handle_import() {
 		if ( '' !== $profile ) {
 			$purl = esc_url_raw( $profile );
 			update_post_meta( $post_id, '_paccc_import_profile_url', $purl );
-			$existing[ $profile ] = true;
+			$existing[ $profile ] = (int) $post_id;
 		}
 		$added++;
 	}
@@ -377,10 +393,11 @@ function paccc_md_handle_import() {
 	wp_safe_redirect(
 		paccc_md_settings_url(
 			array(
-				'paccc_msg'     => 'imported',
-				'paccc_added'   => $added,
-				'paccc_skipped' => $skipped,
-				'paccc_failed'  => $failed,
+				'paccc_msg'         => 'imported',
+				'paccc_added'       => $added,
+				'paccc_skipped'     => $skipped,
+				'paccc_failed'      => $failed,
+				'paccc_country_set' => $country_set,
 			)
 		)
 	);
