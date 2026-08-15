@@ -302,13 +302,10 @@
 }
 
 /* Per-country province map, lazy-loaded under the chips when a country with a
-   map is selected. Rendered ~2x the content width by breaking out of the 960px
-   column, centered on the viewport (capped so it never causes h-scroll). */
+   map is selected. Capped at 600px wide and centered in the content column. */
 .paccc-country-map {
-	width: min(1440px, 96vw);
-	margin-left: 50%;
-	transform: translateX(-50%);
-	margin-bottom: 1.25rem;
+	width: min(600px, 96vw);
+	margin: 0 auto 1.25rem;
 }
 
 .paccc-country-map[hidden] {
