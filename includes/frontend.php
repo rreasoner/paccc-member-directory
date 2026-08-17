@@ -740,16 +740,69 @@ add_action( 'after_setup_theme', 'paccc_md_register_image_sizes' );
  */
 function paccc_md_flush_directory_cache() {
 	delete_transient( 'paccc_md_directory_cache' );
+	delete_transient( 'paccc_md_stats' );
 }
 function paccc_md_flush_directory_cache_typed( $post_id ) {
 	if ( PACCC_MD_CPT === get_post_type( $post_id ) ) {
-		delete_transient( 'paccc_md_directory_cache' );
+		paccc_md_flush_directory_cache();
 	}
 }
 add_action( 'save_post_' . PACCC_MD_CPT, 'paccc_md_flush_directory_cache' );
 add_action( 'before_delete_post', 'paccc_md_flush_directory_cache_typed' );
 add_action( 'trashed_post', 'paccc_md_flush_directory_cache_typed' );
 add_action( 'untrashed_post', 'paccc_md_flush_directory_cache_typed' );
+
+/**
+ * Cached directory totals: total members, and the number of distinct
+ * states + provinces (non-US regions) that have at least one member. Refreshed
+ * by paccc_md_flush_directory_cache() whenever a member changes.
+ */
+function paccc_md_stats() {
+	$stats = get_transient( 'paccc_md_stats' );
+	if ( is_array( $stats ) && isset( $stats['members'], $stats['regions'] ) ) {
+		return $stats;
+	}
+
+	$members   = paccc_md_get_members();
+	$states    = array();
+	$provinces = array();
+	foreach ( $members as $m ) {
+		$country = $m->country ? $m->country : 'US';
+		if ( 'US' === $country ) {
+			if ( $m->state ) {
+				$states[ $m->state ] = true;
+			}
+		} else {
+			// Province, falling back to city; namespaced by country so like-named
+			// regions in different countries count separately.
+			$rk = paccc_md_member_region_key( $m );
+			if ( '' !== $rk ) {
+				$provinces[ $country . '|' . $rk ] = true;
+			}
+		}
+	}
+
+	$stats = array(
+		'members' => count( $members ),
+		'regions' => count( $states ) + count( $provinces ),
+	);
+	set_transient( 'paccc_md_stats', $stats, DAY_IN_SECONDS );
+	return $stats;
+}
+
+/** [paccc_member_count] — total published members. */
+function paccc_md_member_count_shortcode() {
+	$stats = paccc_md_stats();
+	return esc_html( number_format_i18n( (int) $stats['members'] ) );
+}
+add_shortcode( 'paccc_member_count', 'paccc_md_member_count_shortcode' );
+
+/** [paccc_state_count] — distinct states + provinces with members. */
+function paccc_md_state_count_shortcode() {
+	$stats = paccc_md_stats();
+	return esc_html( number_format_i18n( (int) $stats['regions'] ) );
+}
+add_shortcode( 'paccc_state_count', 'paccc_md_state_count_shortcode' );
 
 /* ---------------------------------------------------------------------------
  * Single member page

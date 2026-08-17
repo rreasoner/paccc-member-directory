@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Suite
  * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
- * Version:           2.30.3
+ * Version:           2.31.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.30.3' );
+define( 'PACCC_MD_VERSION', '2.31.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );

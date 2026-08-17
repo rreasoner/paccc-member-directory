@@ -204,6 +204,14 @@ function paccc_md_shortcodes_reference() {
 			'desc' => 'The Approved CEU Courses directory: photo, presenter, biography and an Apply Now button per course, with Number-of-CEUs and Provider dropdown filters. Shows 10 per page; add per_page="20" to change (per_page="0" shows all).',
 		),
 		array(
+			'code' => '[paccc_member_count]',
+			'desc' => 'The total number of members, as plain text (e.g. for a stat/counter). Updates as members are added or removed.',
+		),
+		array(
+			'code' => '[paccc_state_count]',
+			'desc' => 'The number of distinct states and provinces that have at least one member, as plain text.',
+		),
+		array(
 			'code' => '[paccc_member]',
 			'desc' => 'The complete member info block (certifications, address, contact links, map). For a single-member layout in Beaver Themer or any page builder.',
 		),
