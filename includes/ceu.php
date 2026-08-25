@@ -405,7 +405,11 @@ function paccc_ceu_get( $post ) {
 
 /** Base URL of the page holding the Gravity Form (the CEU application). */
 function paccc_ceu_apply_base_url() {
-	return apply_filters( 'paccc_ceu_apply_url', home_url( '/attendee-app/' ) );
+	$link = trim( (string) get_option( 'paccc_ceu_application_link', '' ) );
+	if ( '' === $link ) {
+		$link = home_url( '/attendee-app/' );
+	}
+	return apply_filters( 'paccc_ceu_apply_url', $link );
 }
 
 /** Gravity Forms dynamic-population parameter names for the 3 forwarded fields. */

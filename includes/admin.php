@@ -1027,6 +1027,16 @@ function paccc_md_render_settings() {
 						<p class="description">Background color for states with at least one member. Also the accent for directory buttons and pagination.</p>
 					</td>
 				</tr>
+
+				<tr>
+					<th scope="row"><label for="paccc_ceu_application_link">CEU Application Link</label></th>
+					<td>
+						<input type="url" name="paccc_ceu_application_link" id="paccc_ceu_application_link"
+							value="<?php echo esc_attr( get_option( 'paccc_ceu_application_link', '' ) ); ?>"
+							class="regular-text" placeholder="https://example.com/attendee-app/" />
+						<p class="description">The &ldquo;Apply Now&rdquo; buttons in the CEU directory link here. Leave blank to use <code>/attendee-app/</code>.</p>
+					</td>
+				</tr>
 			</table>
 
 			<?php submit_button( 'Save Settings' ); ?>
@@ -1130,6 +1140,9 @@ function paccc_md_handle_save_settings() {
 
 	$color = isset( $_POST['paccc_map_highlight'] ) ? sanitize_hex_color( wp_unslash( $_POST['paccc_map_highlight'] ) ) : '';
 	update_option( 'paccc_md_map_highlight', $color ? $color : '#ffe399' );
+
+	$ceu_link = isset( $_POST['paccc_ceu_application_link'] ) ? esc_url_raw( wp_unslash( $_POST['paccc_ceu_application_link'] ) ) : '';
+	update_option( 'paccc_ceu_application_link', $ceu_link );
 
 	wp_safe_redirect(
 		add_query_arg(

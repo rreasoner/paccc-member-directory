@@ -161,7 +161,10 @@
 
 .paccc-ceu-apply-btn {
 	display: inline-block;
-	padding: 9px 22px;
+	/* Explicit, equal top/bottom padding + a pinned line-height so the label is
+	   vertically centered regardless of the theme's inherited line-height. */
+	padding: 11px 22px;
+	line-height: 1.2;
 	background: var(--paccc-purple);
 	color: #fff;
 	border-radius: 8px;
