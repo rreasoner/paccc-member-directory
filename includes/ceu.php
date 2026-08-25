@@ -560,7 +560,7 @@ function paccc_ceu_directory_shortcode( $atts ) {
 							<div class="paccc-ceu-bio"><?php echo wp_kses_post( wpautop( $c->biography ) ); ?></div>
 						<?php endif; ?>
 						<p class="paccc-ceu-apply">
-							<a class="paccc-ceu-apply-btn" href="<?php echo esc_url( $apply_url ); ?>"><?php esc_html_e( 'Apply Now', 'paccc-member-directory' ); ?></a>
+							<a class="paccc-ceu-apply-btn" href="<?php echo esc_url( $apply_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Apply Now', 'paccc-member-directory' ); ?></a>
 						</p>
 					</div>
 				</article>

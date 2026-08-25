@@ -159,12 +159,17 @@
 	margin: 4px 0 0;
 }
 
-.paccc-ceu-apply-btn {
+/* High specificity + !important on the box metrics: the theme/Beaver Builder
+   button styles otherwise override our padding, leaving the label bottom-heavy.
+   Equal top/bottom padding, a pinned line-height, and auto height/min-height so
+   nothing squashes the vertical space. */
+.paccc-ceu-directory .paccc-ceu-apply .paccc-ceu-apply-btn {
 	display: inline-block;
-	/* Explicit, equal top/bottom padding + a pinned line-height so the label is
-	   vertically centered regardless of the theme's inherited line-height. */
-	padding: 11px 22px;
-	line-height: 1.2;
+	box-sizing: border-box;
+	padding: 11px 22px !important;
+	line-height: 1.2 !important;
+	height: auto !important;
+	min-height: 0 !important;
 	background: var(--paccc-purple);
 	color: #fff;
 	border-radius: 8px;
@@ -174,8 +179,8 @@
 	transition: background 0.15s ease;
 }
 
-.paccc-ceu-apply-btn:hover,
-.paccc-ceu-apply-btn:focus {
+.paccc-ceu-directory .paccc-ceu-apply .paccc-ceu-apply-btn:hover,
+.paccc-ceu-directory .paccc-ceu-apply .paccc-ceu-apply-btn:focus {
 	background: #4c1c50;
 	color: #fff;
 }
