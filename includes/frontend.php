@@ -804,6 +804,85 @@ function paccc_md_state_count_shortcode() {
 }
 add_shortcode( 'paccc_state_count', 'paccc_md_state_count_shortcode' );
 
+/**
+ * Format a single exam date (stored YYYY-MM-DD) for display, '' if unset.
+ */
+function paccc_md_format_exam_date( $ymd, $format = 'F j' ) {
+	$ymd = trim( (string) $ymd );
+	if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $ymd ) ) {
+		return '';
+	}
+	$ts = strtotime( $ymd . ' 00:00:00' );
+	return $ts ? date_i18n( $format, $ts ) : '';
+}
+
+/**
+ * Format an exam date range, collapsing a shared month/year -- e.g.
+ * "March 10–17, 2026", "March 30 – April 2, 2026", or a cross-year span. If
+ * only one endpoint is set, that single date is returned.
+ */
+function paccc_md_format_exam_range( $start, $end ) {
+	$valid = static function ( $d ) {
+		return preg_match( '/^\d{4}-\d{2}-\d{2}$/', trim( (string) $d ) );
+	};
+	$start = trim( (string) $start );
+	$end   = trim( (string) $end );
+
+	if ( ! $valid( $start ) && ! $valid( $end ) ) {
+		return '';
+	}
+	if ( ! $valid( $start ) ) {
+		return paccc_md_format_exam_date( $end );
+	}
+	if ( ! $valid( $end ) ) {
+		return paccc_md_format_exam_date( $start );
+	}
+
+	$ts1 = strtotime( $start . ' 00:00:00' );
+	$ts2 = strtotime( $end . ' 00:00:00' );
+	if ( ! $ts1 || ! $ts2 ) {
+		return '';
+	}
+	if ( $ts2 < $ts1 ) {
+		$tmp = $ts1;
+		$ts1 = $ts2;
+		$ts2 = $tmp;
+	}
+
+	$dash = "\xe2\x80\x93"; // en dash
+	// Month + day only (no year). Collapse a shared month: "March 10–17".
+	if ( date_i18n( 'n', $ts1 ) === date_i18n( 'n', $ts2 ) && date_i18n( 'Y', $ts1 ) === date_i18n( 'Y', $ts2 ) ) {
+		return date_i18n( 'F j', $ts1 ) . $dash . date_i18n( 'j', $ts2 );
+	}
+	return date_i18n( 'F j', $ts1 ) . ' ' . $dash . ' ' . date_i18n( 'F j', $ts2 );
+}
+
+/** [paccc_spring_exam_dates] — the Spring exam date range. */
+function paccc_md_spring_exam_dates_shortcode() {
+	return esc_html( paccc_md_format_exam_range( get_option( 'paccc_spring_exam_start', '' ), get_option( 'paccc_spring_exam_end', '' ) ) );
+}
+add_shortcode( 'paccc_spring_exam_dates', 'paccc_md_spring_exam_dates_shortcode' );
+
+/** [paccc_fall_exam_dates] — the Fall exam date range. */
+function paccc_md_fall_exam_dates_shortcode() {
+	return esc_html( paccc_md_format_exam_range( get_option( 'paccc_fall_exam_start', '' ), get_option( 'paccc_fall_exam_end', '' ) ) );
+}
+add_shortcode( 'paccc_fall_exam_dates', 'paccc_md_fall_exam_dates_shortcode' );
+
+/** [paccc_spring_reg_deadline] — the Spring registration deadline. */
+function paccc_md_spring_reg_deadline_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'format' => 'F j' ), $atts, 'paccc_spring_reg_deadline' );
+	return esc_html( paccc_md_format_exam_date( get_option( 'paccc_spring_reg_deadline', '' ), $atts['format'] ) );
+}
+add_shortcode( 'paccc_spring_reg_deadline', 'paccc_md_spring_reg_deadline_shortcode' );
+
+/** [paccc_fall_reg_deadline] — the Fall registration deadline. */
+function paccc_md_fall_reg_deadline_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'format' => 'F j' ), $atts, 'paccc_fall_reg_deadline' );
+	return esc_html( paccc_md_format_exam_date( get_option( 'paccc_fall_reg_deadline', '' ), $atts['format'] ) );
+}
+add_shortcode( 'paccc_fall_reg_deadline', 'paccc_md_fall_reg_deadline_shortcode' );
+
 /* ---------------------------------------------------------------------------
  * Single member page
  * ------------------------------------------------------------------------ */

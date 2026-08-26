@@ -212,6 +212,22 @@ function paccc_md_shortcodes_reference() {
 			'desc' => 'The number of distinct states and provinces that have at least one member, as plain text.',
 		),
 		array(
+			'code' => '[paccc_spring_exam_dates]',
+			'desc' => 'The Spring exam date range from Settings, month & day only, e.g. "March 10–17".',
+		),
+		array(
+			'code' => '[paccc_spring_reg_deadline]',
+			'desc' => 'The Spring registration deadline from Settings, month & day only, e.g. "March 3". Add format="F j, Y" to include the year.',
+		),
+		array(
+			'code' => '[paccc_fall_exam_dates]',
+			'desc' => 'The Fall exam date range from Settings, month & day only, e.g. "October 6–13".',
+		),
+		array(
+			'code' => '[paccc_fall_reg_deadline]',
+			'desc' => 'The Fall registration deadline from Settings, month & day only, e.g. "September 29". Add format="F j, Y" to include the year.',
+		),
+		array(
 			'code' => '[paccc_member]',
 			'desc' => 'The complete member info block (certifications, address, contact links, map). For a single-member layout in Beaver Themer or any page builder.',
 		),
@@ -392,6 +408,47 @@ function paccc_md_render_meta_box( $post ) {
 
 	wp_nonce_field( 'paccc_md_save_member', 'paccc_md_nonce' );
 	?>
+	<h2>Spring Exam Info</h2>
+	<table class="form-table" role="presentation">
+		<tr>
+			<th scope="row"><label for="paccc_spring_exam_start">Spring Exam Dates</label></th>
+			<td>
+				<input type="date" name="paccc_spring_exam_start" id="paccc_spring_exam_start" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_start', '' ) ); ?>" />
+				<span class="paccc-md-inline-label">to</span>
+				<input type="date" name="paccc_spring_exam_end" id="paccc_spring_exam_end" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_end', '' ) ); ?>" />
+				<p class="description">The exam date range (e.g. March 10 &ndash; 17). Output by <code>[paccc_spring_exam_dates]</code>.</p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="paccc_spring_reg_deadline">Spring Registration Deadline</label></th>
+			<td>
+				<input type="date" name="paccc_spring_reg_deadline" id="paccc_spring_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_spring_reg_deadline', '' ) ); ?>" />
+				<p class="description">Output by <code>[paccc_spring_reg_deadline]</code>.</p>
+			</td>
+		</tr>
+	</table>
+
+	<h2>Fall Exam Info</h2>
+	<table class="form-table" role="presentation">
+		<tr>
+			<th scope="row"><label for="paccc_fall_exam_start">Fall Exam Dates</label></th>
+			<td>
+				<input type="date" name="paccc_fall_exam_start" id="paccc_fall_exam_start" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_start', '' ) ); ?>" />
+				<span class="paccc-md-inline-label">to</span>
+				<input type="date" name="paccc_fall_exam_end" id="paccc_fall_exam_end" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_end', '' ) ); ?>" />
+				<p class="description">The exam date range (e.g. October 6 &ndash; 13). Output by <code>[paccc_fall_exam_dates]</code>.</p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="paccc_fall_reg_deadline">Fall Registration Deadline</label></th>
+			<td>
+				<input type="date" name="paccc_fall_reg_deadline" id="paccc_fall_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_fall_reg_deadline', '' ) ); ?>" />
+				<p class="description">Output by <code>[paccc_fall_reg_deadline]</code>.</p>
+			</td>
+		</tr>
+	</table>
+
+	<h2>Directory &amp; Map</h2>
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="paccc_member_number">Member Number</label></th>
@@ -1143,6 +1200,20 @@ function paccc_md_handle_save_settings() {
 
 	$ceu_link = isset( $_POST['paccc_ceu_application_link'] ) ? esc_url_raw( wp_unslash( $_POST['paccc_ceu_application_link'] ) ) : '';
 	update_option( 'paccc_ceu_application_link', $ceu_link );
+
+	// Exam-info dates: stored as YYYY-MM-DD (from <input type="date">), or blank.
+	$paccc_date_fields = array(
+		'paccc_spring_exam_start',
+		'paccc_spring_exam_end',
+		'paccc_spring_reg_deadline',
+		'paccc_fall_exam_start',
+		'paccc_fall_exam_end',
+		'paccc_fall_reg_deadline',
+	);
+	foreach ( $paccc_date_fields as $paccc_df ) {
+		$paccc_dv = isset( $_POST[ $paccc_df ] ) ? sanitize_text_field( wp_unslash( $_POST[ $paccc_df ] ) ) : '';
+		update_option( $paccc_df, preg_match( '/^\d{4}-\d{2}-\d{2}$/', $paccc_dv ) ? $paccc_dv : '' );
+	}
 
 	wp_safe_redirect(
 		add_query_arg(
