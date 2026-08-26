@@ -408,47 +408,6 @@ function paccc_md_render_meta_box( $post ) {
 
 	wp_nonce_field( 'paccc_md_save_member', 'paccc_md_nonce' );
 	?>
-	<h2>Spring Exam Info</h2>
-	<table class="form-table" role="presentation">
-		<tr>
-			<th scope="row"><label for="paccc_spring_exam_start">Spring Exam Dates</label></th>
-			<td>
-				<input type="date" name="paccc_spring_exam_start" id="paccc_spring_exam_start" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_start', '' ) ); ?>" />
-				<span class="paccc-md-inline-label">to</span>
-				<input type="date" name="paccc_spring_exam_end" id="paccc_spring_exam_end" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_end', '' ) ); ?>" />
-				<p class="description">The exam date range (e.g. March 10 &ndash; 17). Output by <code>[paccc_spring_exam_dates]</code>.</p>
-			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="paccc_spring_reg_deadline">Spring Registration Deadline</label></th>
-			<td>
-				<input type="date" name="paccc_spring_reg_deadline" id="paccc_spring_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_spring_reg_deadline', '' ) ); ?>" />
-				<p class="description">Output by <code>[paccc_spring_reg_deadline]</code>.</p>
-			</td>
-		</tr>
-	</table>
-
-	<h2>Fall Exam Info</h2>
-	<table class="form-table" role="presentation">
-		<tr>
-			<th scope="row"><label for="paccc_fall_exam_start">Fall Exam Dates</label></th>
-			<td>
-				<input type="date" name="paccc_fall_exam_start" id="paccc_fall_exam_start" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_start', '' ) ); ?>" />
-				<span class="paccc-md-inline-label">to</span>
-				<input type="date" name="paccc_fall_exam_end" id="paccc_fall_exam_end" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_end', '' ) ); ?>" />
-				<p class="description">The exam date range (e.g. October 6 &ndash; 13). Output by <code>[paccc_fall_exam_dates]</code>.</p>
-			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="paccc_fall_reg_deadline">Fall Registration Deadline</label></th>
-			<td>
-				<input type="date" name="paccc_fall_reg_deadline" id="paccc_fall_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_fall_reg_deadline', '' ) ); ?>" />
-				<p class="description">Output by <code>[paccc_fall_reg_deadline]</code>.</p>
-			</td>
-		</tr>
-	</table>
-
-	<h2>Directory &amp; Map</h2>
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="paccc_member_number">Member Number</label></th>
@@ -1031,6 +990,47 @@ function paccc_md_render_settings() {
 			<input type="hidden" name="action" value="paccc_md_save_settings" />
 			<?php wp_nonce_field( 'paccc_md_save_settings' ); ?>
 
+			<h2>Spring Exam Info</h2>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="paccc_spring_exam_start">Spring Exam Dates</label></th>
+					<td>
+						<input type="date" name="paccc_spring_exam_start" id="paccc_spring_exam_start" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_start', '' ) ); ?>" />
+						<span class="paccc-md-inline-label">to</span>
+						<input type="date" name="paccc_spring_exam_end" id="paccc_spring_exam_end" value="<?php echo esc_attr( get_option( 'paccc_spring_exam_end', '' ) ); ?>" />
+						<p class="description">The exam date range (e.g. March 10 &ndash; 17). Output by <code>[paccc_spring_exam_dates]</code>.</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="paccc_spring_reg_deadline">Spring Registration Deadline</label></th>
+					<td>
+						<input type="date" name="paccc_spring_reg_deadline" id="paccc_spring_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_spring_reg_deadline', '' ) ); ?>" />
+						<p class="description">Output by <code>[paccc_spring_reg_deadline]</code>.</p>
+					</td>
+				</tr>
+			</table>
+
+			<h2>Fall Exam Info</h2>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="paccc_fall_exam_start">Fall Exam Dates</label></th>
+					<td>
+						<input type="date" name="paccc_fall_exam_start" id="paccc_fall_exam_start" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_start', '' ) ); ?>" />
+						<span class="paccc-md-inline-label">to</span>
+						<input type="date" name="paccc_fall_exam_end" id="paccc_fall_exam_end" value="<?php echo esc_attr( get_option( 'paccc_fall_exam_end', '' ) ); ?>" />
+						<p class="description">The exam date range (e.g. October 6 &ndash; 13). Output by <code>[paccc_fall_exam_dates]</code>.</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="paccc_fall_reg_deadline">Fall Registration Deadline</label></th>
+					<td>
+						<input type="date" name="paccc_fall_reg_deadline" id="paccc_fall_reg_deadline" value="<?php echo esc_attr( get_option( 'paccc_fall_reg_deadline', '' ) ); ?>" />
+						<p class="description">Output by <code>[paccc_fall_reg_deadline]</code>.</p>
+					</td>
+				</tr>
+			</table>
+
+			<h2>Directory &amp; Map</h2>
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row"><label for="paccc_directory_page_id">Directory page</label></th>
