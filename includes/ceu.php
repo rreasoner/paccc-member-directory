@@ -429,6 +429,15 @@ function paccc_ceu_apply_params() {
  * Organization as query args the Gravity Form can populate.
  */
 function paccc_ceu_apply_url( $ceu ) {
+	// A course with its own Website (the spreadsheet's Website column / the
+	// Edit CEU screen) applies there, exactly as entered.
+	$website = trim( (string) $ceu->website );
+	if ( '' !== $website ) {
+		return $website;
+	}
+
+	// Otherwise fall back to the CEU Application Link from Settings, with the
+	// course details appended for the Gravity Form pre-fill.
 	$params = paccc_ceu_apply_params();
 	$org    = '' !== $ceu->provider ? $ceu->provider : $ceu->presenter;
 	$args   = array(
