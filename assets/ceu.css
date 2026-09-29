@@ -125,6 +125,27 @@
 	color: var(--paccc-purple);
 }
 
+.paccc-ceu-contact a {
+	color: var(--paccc-purple);
+	text-decoration: underline;
+	word-break: break-word;
+}
+
+.paccc-ceu-contact a:hover,
+.paccc-ceu-contact a:focus {
+	color: #4c1c50;
+}
+
+/* Contact lines sit a little tighter under the Presenter line. */
+.paccc-ceu-card-title + .paccc-ceu-presenter,
+.paccc-ceu-presenter + .paccc-ceu-presenter {
+	margin-top: 0;
+}
+
+.paccc-ceu-card-body .paccc-ceu-apply {
+	margin-top: 10px;
+}
+
 .paccc-ceu-website {
 	margin: 0 0 8px;
 	font-size: 14px;

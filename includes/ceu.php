@@ -69,7 +69,7 @@ function paccc_ceu_register_cpt() {
 			'show_in_rest'    => false,
 			'has_archive'     => false,
 			'rewrite'         => false,
-			'supports'        => array( 'title', 'editor', 'thumbnail' ),
+			'supports'        => array( 'title' ),
 			'capability_type' => 'post',
 			'map_meta_cap'    => true,
 		)
@@ -98,17 +98,6 @@ function paccc_ceu_register_cpt() {
 		)
 	);
 
-	add_post_type_support( PACCC_CEU_CPT, 'thumbnail' );
-
-	/*
-	 * The course-photo override uses the featured-image box, which only renders
-	 * when the theme supports post thumbnails. Enable it globally only if the
-	 * theme hasn't already declared support (declaring it scoped here could
-	 * clobber a theme that limited thumbnails to specific post types).
-	 */
-	if ( ! current_theme_supports( 'post-thumbnails' ) ) {
-		add_theme_support( 'post-thumbnails' );
-	}
 }
 add_action( 'init', 'paccc_ceu_register_cpt' );
 
@@ -282,18 +271,35 @@ add_action( 'add_meta_boxes', 'paccc_ceu_add_meta_box' );
 
 function paccc_ceu_render_meta_box( $post ) {
 	wp_nonce_field( 'paccc_ceu_save', 'paccc_ceu_nonce' );
+	$code      = (string) get_post_meta( $post->ID, 'paccc_ceu_program_code', true );
 	$presenter = (string) get_post_meta( $post->ID, 'paccc_ceu_presenter', true );
+	$contact   = (string) get_post_meta( $post->ID, 'paccc_ceu_contact_name', true );
+	$email     = (string) get_post_meta( $post->ID, 'paccc_ceu_contact_email', true );
 	$website   = (string) get_post_meta( $post->ID, 'paccc_ceu_website', true );
 	$amount    = (string) get_post_meta( $post->ID, 'paccc_ceu_amount', true );
 	$amounts   = paccc_ceu_amounts();
 	?>
 	<p>
+		<label for="paccc_ceu_program_code"><strong><?php esc_html_e( 'Program Code', 'paccc-member-directory' ); ?></strong></label><br />
+		<input type="text" id="paccc_ceu_program_code" name="paccc_ceu_program_code" value="<?php echo esc_attr( $code ); ?>" class="regular-text" />
+		<br /><span class="description"><?php esc_html_e( 'From the CEU Master List (e.g. CC170001). Used with the Program Name to match rows when you re-upload the spreadsheet.', 'paccc-member-directory' ); ?></span>
+	</p>
+	<p>
 		<label for="paccc_ceu_presenter"><strong><?php esc_html_e( 'Presenter', 'paccc-member-directory' ); ?></strong></label><br />
 		<input type="text" id="paccc_ceu_presenter" name="paccc_ceu_presenter" value="<?php echo esc_attr( $presenter ); ?>" class="widefat" />
 	</p>
 	<p>
-		<label for="paccc_ceu_website"><strong><?php esc_html_e( 'Website', 'paccc-member-directory' ); ?></strong></label><br />
+		<label for="paccc_ceu_contact_name"><strong><?php esc_html_e( 'Contact Person', 'paccc-member-directory' ); ?></strong></label><br />
+		<input type="text" id="paccc_ceu_contact_name" name="paccc_ceu_contact_name" value="<?php echo esc_attr( $contact ); ?>" class="widefat" />
+	</p>
+	<p>
+		<label for="paccc_ceu_contact_email"><strong><?php esc_html_e( 'Contact Email', 'paccc-member-directory' ); ?></strong></label><br />
+		<input type="email" id="paccc_ceu_contact_email" name="paccc_ceu_contact_email" value="<?php echo esc_attr( $email ); ?>" class="widefat" />
+	</p>
+	<p>
+		<label for="paccc_ceu_website"><strong><?php esc_html_e( 'Apply Now URL', 'paccc-member-directory' ); ?></strong></label><br />
 		<input type="url" id="paccc_ceu_website" name="paccc_ceu_website" value="<?php echo esc_attr( $website ); ?>" class="widefat" placeholder="https://" />
+		<br /><span class="description"><?php esc_html_e( 'The spreadsheet\'s URL column. If blank, Apply Now uses the CEU Application Link from Settings.', 'paccc-member-directory' ); ?></span>
 	</p>
 	<p>
 		<label for="paccc_ceu_amount"><strong><?php esc_html_e( 'Number of CEUs', 'paccc-member-directory' ); ?></strong></label><br />
@@ -315,7 +321,7 @@ function paccc_ceu_render_meta_box( $post ) {
 			?>
 		</select>
 	</p>
-	<p class="description"><?php esc_html_e( 'Biography goes in the main editor above. The course photo is the "Course photo" box; if left empty, the provider\'s logo is used.', 'paccc-member-directory' ); ?></p>
+	<p class="description"><?php esc_html_e( 'The title above is the Program Name.', 'paccc-member-directory' ); ?></p>
 	<?php
 }
 
@@ -330,13 +336,24 @@ function paccc_ceu_save_meta( $post_id ) {
 		return;
 	}
 
-	$presenter = isset( $_POST['paccc_ceu_presenter'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_ceu_presenter'] ) ) : '';
-	$website   = isset( $_POST['paccc_ceu_website'] ) ? esc_url_raw( wp_unslash( $_POST['paccc_ceu_website'] ) ) : '';
-	$amount    = isset( $_POST['paccc_ceu_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['paccc_ceu_amount'] ) ) : '';
+	$text = static function ( $key ) {
+		return isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification -- verified above
+	};
 
-	update_post_meta( $post_id, 'paccc_ceu_presenter', $presenter );
-	update_post_meta( $post_id, 'paccc_ceu_website', $website );
-	update_post_meta( $post_id, 'paccc_ceu_amount', $amount );
+	$email = sanitize_email( $text( 'paccc_ceu_contact_email' ) );
+
+	update_post_meta( $post_id, 'paccc_ceu_program_code', $text( 'paccc_ceu_program_code' ) );
+	update_post_meta( $post_id, 'paccc_ceu_presenter', $text( 'paccc_ceu_presenter' ) );
+	update_post_meta( $post_id, 'paccc_ceu_contact_name', $text( 'paccc_ceu_contact_name' ) );
+	update_post_meta( $post_id, 'paccc_ceu_contact_email', is_email( $email ) ? $email : '' );
+	update_post_meta( $post_id, 'paccc_ceu_website', isset( $_POST['paccc_ceu_website'] ) ? esc_url_raw( wp_unslash( $_POST['paccc_ceu_website'] ) ) : '' );
+	update_post_meta( $post_id, 'paccc_ceu_amount', $text( 'paccc_ceu_amount' ) );
+
+	// The Presenter doubles as the Presenter filter on the front end.
+	$presenter = $text( 'paccc_ceu_presenter' );
+	if ( '' !== $presenter ) {
+		wp_set_object_terms( $post_id, $presenter, PACCC_CEU_TAX, false );
+	}
 }
 add_action( 'save_post_' . PACCC_CEU_CPT, 'paccc_ceu_save_meta' );
 
@@ -392,6 +409,9 @@ function paccc_ceu_get( $post ) {
 		'ID'            => $post->ID,
 		'course'        => $post->post_title,
 		'presenter'     => (string) get_post_meta( $post->ID, 'paccc_ceu_presenter', true ),
+		'contact_name'  => (string) get_post_meta( $post->ID, 'paccc_ceu_contact_name', true ),
+		'contact_email' => (string) get_post_meta( $post->ID, 'paccc_ceu_contact_email', true ),
+		'program_code'  => (string) get_post_meta( $post->ID, 'paccc_ceu_program_code', true ),
 		'website'       => (string) get_post_meta( $post->ID, 'paccc_ceu_website', true ),
 		'biography'     => $post->post_content,
 		'amount'        => $amount,
@@ -429,8 +449,8 @@ function paccc_ceu_apply_params() {
  * Organization as query args the Gravity Form can populate.
  */
 function paccc_ceu_apply_url( $ceu ) {
-	// A course with its own Website (the spreadsheet's Website column / the
-	// Edit CEU screen) applies there, exactly as entered.
+	// A program with its own Apply Now URL (the master list's URL column /
+	// the Edit CEU screen; stored as paccc_ceu_website) applies there as-is.
 	$website = trim( (string) $ceu->website );
 	if ( '' !== $website ) {
 		return $website;
@@ -531,9 +551,9 @@ function paccc_ceu_directory_shortcode( $atts ) {
 				</select>
 			</label>
 			<label class="paccc-ceu-filter">
-				<span><?php esc_html_e( 'Provider', 'paccc-member-directory' ); ?></span>
+				<span><?php esc_html_e( 'Presenter', 'paccc-member-directory' ); ?></span>
 				<select class="paccc-ceu-filter-provider">
-					<option value=""><?php esc_html_e( 'All providers', 'paccc-member-directory' ); ?></option>
+					<option value=""><?php esc_html_e( 'All presenters', 'paccc-member-directory' ); ?></option>
 					<?php foreach ( $providers as $slug => $name ) : ?>
 						<option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $name ); ?></option>
 					<?php endforeach; ?>
@@ -549,11 +569,6 @@ function paccc_ceu_directory_shortcode( $atts ) {
 				$apply_url = paccc_ceu_apply_url( $c );
 				?>
 				<article class="paccc-ceu-card" data-amount="<?php echo esc_attr( $c->amount ); ?>" data-provider="<?php echo esc_attr( $c->provider_slug ); ?>" data-course="<?php echo esc_attr( strtolower( $c->course ) ); ?>">
-					<?php if ( $c->photo ) : ?>
-						<div class="paccc-ceu-card-photo">
-							<img src="<?php echo esc_url( $c->photo ); ?>" alt="<?php echo esc_attr( $c->course ); ?>" loading="lazy" />
-						</div>
-					<?php endif; ?>
 					<div class="paccc-ceu-card-body">
 						<?php if ( $c->amount_label ) : ?>
 							<span class="paccc-ceu-badge"><?php echo esc_html( $c->amount_label ); ?></span>
@@ -562,11 +577,12 @@ function paccc_ceu_directory_shortcode( $atts ) {
 						<?php if ( $c->presenter ) : ?>
 							<p class="paccc-ceu-presenter"><strong><?php esc_html_e( 'Presenter:', 'paccc-member-directory' ); ?></strong> <?php echo esc_html( $c->presenter ); ?></p>
 						<?php endif; ?>
-						<?php if ( $c->website ) : ?>
-							<p class="paccc-ceu-website"><a href="<?php echo esc_url( $c->website ); ?>" target="_blank" rel="noopener nofollow"><?php echo esc_html( preg_replace( '#^https?://#', '', untrailingslashit( $c->website ) ) ); ?></a></p>
+						<?php if ( $c->contact_name ) : ?>
+							<p class="paccc-ceu-presenter paccc-ceu-contact"><strong><?php esc_html_e( 'Contact:', 'paccc-member-directory' ); ?></strong> <?php echo esc_html( $c->contact_name ); ?></p>
 						<?php endif; ?>
-						<?php if ( $c->biography ) : ?>
-							<div class="paccc-ceu-bio"><?php echo wp_kses_post( wpautop( $c->biography ) ); ?></div>
+						<?php if ( $c->contact_email && is_email( $c->contact_email ) ) : ?>
+							<?php // antispambot() entity-encodes the address so simple scrapers can't harvest it. ?>
+							<p class="paccc-ceu-presenter paccc-ceu-contact"><strong><?php esc_html_e( 'Email:', 'paccc-member-directory' ); ?></strong> <a href="mailto:<?php echo antispambot( $c->contact_email ); // phpcs:ignore WordPress.Security.EscapeOutput -- is_email-validated, entity-encoded ?>"><?php echo antispambot( $c->contact_email ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a></p>
 						<?php endif; ?>
 						<p class="paccc-ceu-apply">
 							<a class="paccc-ceu-apply-btn" href="<?php echo esc_url( $apply_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Apply Now', 'paccc-member-directory' ); ?></a>

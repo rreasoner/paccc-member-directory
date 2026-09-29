@@ -201,7 +201,7 @@ function paccc_md_shortcodes_reference() {
 		),
 		array(
 			'code' => '[paccc_ceu_directory]',
-			'desc' => 'The Approved CEU Courses directory: photo, presenter, biography and an Apply Now button per course, with Number-of-CEUs and Provider dropdown filters. Shows 10 per page; add per_page="20" to change (per_page="0" shows all).',
+			'desc' => 'The Approved CEU list: number of CEUs, program name, presenter, contact person, contact email and an Apply Now button per program, with Number-of-CEUs and Presenter dropdown filters. Shows 10 per page; add per_page="20" to change (per_page="0" shows all).',
 		),
 		array(
 			'code' => '[paccc_member_count]',
@@ -1091,7 +1091,7 @@ function paccc_md_render_settings() {
 						<input type="url" name="paccc_ceu_application_link" id="paccc_ceu_application_link"
 							value="<?php echo esc_attr( get_option( 'paccc_ceu_application_link', '' ) ); ?>"
 							class="regular-text" placeholder="https://example.com/attendee-app/" />
-						<p class="description">Each CEU&rsquo;s &ldquo;Apply Now&rdquo; button goes to that course&rsquo;s Website. Courses with no Website link here instead (with the course details pre-filled). Leave blank to use <code>/attendee-app/</code>.</p>
+						<p class="description">Each CEU&rsquo;s &ldquo;Apply Now&rdquo; button goes to the URL from the CEU Master List&rsquo;s URL column. Programs with no URL link here instead (with the program details pre-filled). Leave blank to use <code>/attendee-app/</code>.</p>
 					</td>
 				</tr>
 			</table>
