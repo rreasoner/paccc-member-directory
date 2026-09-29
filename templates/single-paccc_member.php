@@ -3,7 +3,8 @@
  * Single member template.
  *
  * Deliberately minimal: no sidebar, no author byline, no post date — just the
- * business name and the member details. The theme's header and footer are
+ * member's name (the_title() is swapped to the person's name on member pages,
+ * see paccc_md_single_title_member_name()) and the member details. The theme's header and footer are
  * still used, so the page keeps site branding and navigation.
  *
  * To customize, copy this file into your theme as single-paccc_member.php;

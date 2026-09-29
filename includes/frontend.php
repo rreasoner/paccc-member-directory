@@ -967,27 +967,28 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 			<?php endif; ?>
 			<?php
 			/*
-			 * On the built-in single template the business name is the page's
-			 * H1, so it's dropped here to avoid repeating it ($show_business_name
-			 * is false). The [paccc_member] shortcode has no such heading, so it
-			 * passes true and the name shows above Member Name.
-			 * Certification pills are shown below Member Name instead of as a row.
+			 * The page heading shows the member's name (the_title is swapped by
+			 * paccc_md_single_title_member_name()), so the first row here is the
+			 * Business Name -- omitted when there's no separate business (imports
+			 * used the person's name as the business name) or no person name (the
+			 * heading then falls back to the business name itself).
+			 * $show_business_name is kept for backward compatibility; both the
+			 * template and the [paccc_member] shortcode now render the same rows.
 			 * Member Number stays last and de-emphasized rather than removed
 			 * outright, since it's still useful for e.g. a member
 			 * cross-checking their own certificate.
 			 */
+			$paccc_person   = trim( (string) $m->member_name );
+			$paccc_business = trim( (string) $m->business_name );
+			$paccc_show_biz = '' !== $paccc_person && '' !== $paccc_business && 0 !== strcasecmp( $paccc_person, $paccc_business );
 			?>
 			<dl class="paccc-member-details">
-				<?php if ( $show_business_name && '' !== trim( (string) $m->business_name ) ) : ?>
-					<div class="paccc-member-business-name-row">
+				<?php if ( $paccc_show_biz ) : ?>
+					<div class="paccc-member-business-name-row paccc-member-name-row">
 						<dt>Business Name</dt>
-						<dd><?php echo esc_html( $m->business_name ); ?></dd>
+						<dd><?php echo esc_html( $paccc_business ); ?></dd>
 					</div>
 				<?php endif; ?>
-				<div class="paccc-member-name-row">
-					<dt>Member Name</dt>
-					<dd><?php echo esc_html( $m->member_name ); ?></dd>
-				</div>
 				<?php if ( $m->certifications ) : ?>
 					<div class="paccc-member-cert-row">
 						<dt>Certification(s)</dt>
@@ -1168,6 +1169,43 @@ function paccc_md_business_name_shortcode( $atts ) {
 	return esc_html( $name );
 }
 add_shortcode( 'paccc_member_business_name', 'paccc_md_business_name_shortcode' );
+
+/**
+ * [paccc_member_name] -- the member's (person's) name as plain text, for a
+ * page-builder heading. Falls back to the business name when no person name
+ * is set, so the heading is never empty.
+ */
+function paccc_md_member_name_shortcode( $atts ) {
+	$atts = shortcode_atts( array( 'id' => 0 ), $atts, 'paccc_member_name' );
+	$m    = paccc_md_shortcode_target( $atts );
+	if ( ! $m ) {
+		return '';
+	}
+
+	$name = trim( (string) $m->member_name );
+	if ( '' === $name ) {
+		$name = trim( (string) $m->business_name );
+	}
+	return esc_html( $name );
+}
+add_shortcode( 'paccc_member_name', 'paccc_md_member_name_shortcode' );
+
+/**
+ * On a member's own page, show the person's name wherever that page's title is
+ * printed -- the plugin template's H1, the theme's title, or a Beaver Themer
+ * "Post Title" heading -- so the member name leads regardless of layout.
+ * Scoped to the queried member only, on the front end, so menus/admin/other
+ * posts keep the stored title (the business name). Falls back to the business
+ * name when no person name is set.
+ */
+function paccc_md_single_title_member_name( $title, $post_id = 0 ) {
+	if ( is_admin() || ! $post_id || ! is_singular( PACCC_MD_CPT ) || (int) $post_id !== (int) get_queried_object_id() ) {
+		return $title;
+	}
+	$name = trim( (string) get_post_meta( $post_id, 'paccc_member_name', true ) );
+	return '' !== $name ? esc_html( $name ) : $title;
+}
+add_filter( 'the_title', 'paccc_md_single_title_member_name', 10, 2 );
 
 /**
  * [paccc_member_certifications] -- the certification pills (same markup as the
