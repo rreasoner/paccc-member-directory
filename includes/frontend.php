@@ -239,8 +239,19 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 3 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 4 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
+
+		// Alphabetize by the name shown as each listing's heading (person's
+		// name, else business name) so the list and the A-Z filter agree.
+		usort(
+			$members,
+			static function ( $a, $b ) {
+				$na = remove_accents( trim( (string) ( '' !== trim( (string) $a->member_name ) ? $a->member_name : $a->business_name ) ) );
+				$nb = remove_accents( trim( (string) ( '' !== trim( (string) $b->member_name ) ? $b->member_name : $b->business_name ) ) );
+				return strnatcasecmp( $na, $nb );
+			}
+		);
 
 		// Prime attachment (logo) caches in one pass so per-member image lookups
 		// don't each hit the database.
@@ -310,7 +321,7 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 3, // bump whenever the cached list markup changes
+				'v'            => 4, // bump whenever the cached list markup changes
 				'members_html' => $members_html,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
