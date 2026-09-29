@@ -417,6 +417,7 @@ function paccc_md_handle_import() {
 		update_post_meta( $post_id, 'paccc_member_number', str_pad( (string) $next, 7, '0', STR_PAD_LEFT ) );
 		$next++;
 		update_post_meta( $post_id, 'paccc_member_name', sanitize_text_field( $name ) );
+		paccc_md_sync_member_slug( $post_id ); // URL follows the member's name
 		update_post_meta( $post_id, 'paccc_certifications', $certs );
 		update_post_meta( $post_id, 'paccc_address1', sanitize_text_field( $addr['address1'] ) );
 		update_post_meta( $post_id, 'paccc_address2', '' );

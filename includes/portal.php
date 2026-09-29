@@ -295,6 +295,7 @@ function paccc_md_portal_save() {
 	}
 
 	update_post_meta( $post_id, 'paccc_member_name', isset( $_POST['member_name'] ) ? sanitize_text_field( wp_unslash( $_POST['member_name'] ) ) : '' );
+	paccc_md_sync_member_slug( $post_id ); // URL follows the member's name
 	update_post_meta( $post_id, 'paccc_address1', isset( $_POST['address1'] ) ? sanitize_text_field( wp_unslash( $_POST['address1'] ) ) : '' );
 	update_post_meta( $post_id, 'paccc_address2', isset( $_POST['address2'] ) ? sanitize_text_field( wp_unslash( $_POST['address2'] ) ) : '' );
 	update_post_meta( $post_id, 'paccc_city', isset( $_POST['city'] ) ? sanitize_text_field( wp_unslash( $_POST['city'] ) ) : '' );
