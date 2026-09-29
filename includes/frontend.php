@@ -1222,6 +1222,54 @@ function paccc_md_single_title_member_name( $title, $post_id = 0 ) {
 add_filter( 'the_title', 'paccc_md_single_title_member_name', 10, 2 );
 
 /**
+ * The member's (person's) name for a member post, or '' if none is set (in
+ * which case callers keep the business name).
+ */
+function paccc_md_member_person_name( $post_id ) {
+	return trim( (string) get_post_meta( (int) $post_id, 'paccc_member_name', true ) );
+}
+
+/**
+ * Browser-tab / document title on a member page: the member's name. Covers
+ * sites without Yoast (Yoast bypasses document_title_parts; see below).
+ */
+function paccc_md_single_document_title( $parts ) {
+	if ( is_singular( PACCC_MD_CPT ) ) {
+		$name = paccc_md_member_person_name( get_queried_object_id() );
+		if ( '' !== $name ) {
+			$parts['title'] = $name;
+		}
+	}
+	return $parts;
+}
+add_filter( 'document_title_parts', 'paccc_md_single_document_title' );
+
+/**
+ * Yoast: on member posts, the %%title%% variable resolves to the member's name
+ * instead of the post title (business name). Swapping the variable -- rather
+ * than overriding the whole title -- keeps the site's Yoast title template
+ * (separator, site name, etc.) and flows through to the SEO title, og:title,
+ * twitter:title and Yoast's schema. A custom SEO title typed on an individual
+ * member is left as written.
+ */
+function paccc_md_yoast_member_title_var( $replacements, $args ) {
+	if ( ! isset( $replacements['%%title%%'] ) || ! is_object( $args ) ) {
+		return $replacements;
+	}
+	$post_type = isset( $args->post_type ) ? $args->post_type : '';
+	$post_id   = isset( $args->ID ) ? (int) $args->ID : 0;
+	if ( PACCC_MD_CPT !== $post_type || ! $post_id ) {
+		return $replacements;
+	}
+	$name = paccc_md_member_person_name( $post_id );
+	if ( '' !== $name ) {
+		$replacements['%%title%%'] = $name;
+	}
+	return $replacements;
+}
+add_filter( 'wpseo_replacements', 'paccc_md_yoast_member_title_var', 10, 2 );
+
+/**
  * [paccc_member_certifications] -- the certification pills (same markup as the
  * directory and single-member views), or nothing if the member has none.
  */
