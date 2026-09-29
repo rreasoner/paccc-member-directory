@@ -239,7 +239,7 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 1 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 2 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
 
 		// Prime attachment (logo) caches in one pass so per-member image lookups
@@ -310,7 +310,7 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 1,
+				'v'            => 2, // bump whenever the cached list markup changes
 				'members_html' => $members_html,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
@@ -591,12 +591,19 @@ function paccc_md_render_members_list( $members ) {
 									<span class="paccc-member-logo" aria-hidden="true"><?php echo $paccc_logo; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 								<?php endif; ?>
 								<div class="paccc-member-identity">
+									<?php
+									// Person's name leads; business name moves to the meta line.
+									// Falls back to the business name when no person is set, and
+									// skips the business line when it just repeats the person's name.
+									$paccc_heading  = '' !== trim( (string) $m->member_name ) ? $m->member_name : $m->business_name;
+									$paccc_business = ( '' !== trim( (string) $m->member_name ) && 0 !== strcasecmp( trim( $m->business_name ), trim( $m->member_name ) ) ) ? $m->business_name : '';
+									?>
 									<h3 class="paccc-member-name">
-										<a href="<?php echo esc_url( $m->permalink ); ?>"><?php echo esc_html( $m->business_name ); ?></a>
+										<a href="<?php echo esc_url( $m->permalink ); ?>"><?php echo esc_html( $paccc_heading ); ?></a>
 									</h3>
 									<p class="paccc-member-meta">
-										<?php if ( $m->member_name ) : ?>
-											<span class="paccc-member-person"><?php echo esc_html( $m->member_name ); ?></span>
+										<?php if ( $paccc_business ) : ?>
+											<span class="paccc-member-person paccc-member-business"><?php echo esc_html( $paccc_business ); ?></span>
 										<?php endif; ?>
 										<?php if ( $location ) : ?>
 											<span class="paccc-member-location"><?php echo esc_html( $location ); ?></span>
