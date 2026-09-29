@@ -935,6 +935,7 @@ function paccc_md_render_settings() {
 			$skipped     = isset( $_GET['paccc_skipped'] ) ? absint( $_GET['paccc_skipped'] ) : 0;
 			$failed      = isset( $_GET['paccc_failed'] ) ? absint( $_GET['paccc_failed'] ) : 0;
 			$country_set = isset( $_GET['paccc_country_set'] ) ? absint( $_GET['paccc_country_set'] ) : 0;
+			$site_set    = isset( $_GET['paccc_site_set'] ) ? absint( $_GET['paccc_site_set'] ) : 0;
 			?>
 			<div class="notice notice-success is-dismissible">
 				<p>
@@ -944,6 +945,9 @@ function paccc_md_render_settings() {
 					<?php endif; ?>
 					<?php if ( $country_set ) : ?>
 						<?php echo esc_html( sprintf( ' Updated the country/region on %d existing member%s.', $country_set, 1 === $country_set ? '' : 's' ) ); ?>
+					<?php endif; ?>
+					<?php if ( $site_set ) : ?>
+						<?php echo esc_html( sprintf( ' Added or repaired the website on %d existing member%s.', $site_set, 1 === $site_set ? '' : 's' ) ); ?>
 					<?php endif; ?>
 					<?php if ( $failed ) : ?>
 						<?php echo esc_html( sprintf( ' %d row%s could not be added.', $failed, 1 === $failed ? '' : 's' ) ); ?>

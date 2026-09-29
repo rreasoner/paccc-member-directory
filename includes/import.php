@@ -126,6 +126,25 @@ function paccc_md_read_xlsx( $file ) {
 	return $best;
 }
 
+/**
+ * Clean up a Website cell into a usable URL. Keeps a valid http(s):// address
+ * as-is; otherwise strips a mangled or partial scheme ("ttps://", "http//",
+ * "//") and adds https:// -- so "www.x.com" and "ttps://www.x.com" both become
+ * "https://www.x.com". Returns '' for an empty cell.
+ */
+function paccc_md_normalize_import_url( $raw ) {
+	$u = trim( (string) $raw );
+	if ( '' === $u ) {
+		return '';
+	}
+	if ( ! preg_match( '#^https?://#i', $u ) || preg_match( '#^https?://[a-z]*:?/+#i', $u ) ) {
+		// No valid scheme, or a doubled one -- strip every leading scheme-ish run.
+		$u = preg_replace( '#^(?:[a-z]*:?/+)+#i', '', $u );
+		$u = 'https://' . ltrim( $u, '/' );
+	}
+	return esc_url_raw( $u );
+}
+
 function paccc_md_normalize_header( $h ) {
 	return strtolower( trim( preg_replace( '/\s+/', ' ', (string) $h ) ) );
 }
@@ -301,6 +320,7 @@ function paccc_md_handle_import() {
 	$skipped     = 0;
 	$failed      = 0;
 	$country_set = 0;
+	$site_set    = 0;
 
 	foreach ( $rows as $row ) {
 		$name     = $get( $row, 'name' );
@@ -319,6 +339,8 @@ function paccc_md_handle_import() {
 		$country     = isset( $country_map[ $country_raw ] ) ? $country_map[ $country_raw ] : 'US';
 		$region      = ( 'US' !== $country ) ? sanitize_text_field( $get( $row, 'state / province' ) ) : '';
 
+		$website = paccc_md_normalize_import_url( $get( $row, 'website' ) );
+
 		if ( '' !== $profile && isset( $existing[ $profile ] ) ) {
 			// Already imported: backfill country + region (both newer than the
 			// original import) without creating a duplicate.
@@ -335,6 +357,20 @@ function paccc_md_handle_import() {
 				}
 				if ( $changed ) {
 					$country_set++;
+				}
+
+				// Website: fill it in when the member has none, or repair one an
+				// earlier import mangled (e.g. "https://ttps://..."). A valid
+				// website is never overwritten -- the member may have edited it
+				// in the portal.
+				if ( '' !== $website ) {
+					$cur_site = (string) get_post_meta( $eid, 'paccc_website', true );
+					if ( '' === $cur_site || preg_match( '#^https?://[a-z]*:?/+#i', $cur_site ) ) {
+						if ( $cur_site !== $website ) {
+							update_post_meta( $eid, 'paccc_website', $website );
+							$site_set++;
+						}
+					}
 				}
 			}
 			$skipped++;
@@ -363,10 +399,6 @@ function paccc_md_handle_import() {
 			$state = $addr['state_abbr'];
 		}
 
-		$website = $get( $row, 'website' );
-		if ( '' !== $website && ! preg_match( '#^https?://#i', $website ) ) {
-			$website = 'https://' . $website;
-		}
 		$email = sanitize_email( $get( $row, 'email' ) );
 
 		$post_id = wp_insert_post(
@@ -393,7 +425,7 @@ function paccc_md_handle_import() {
 		update_post_meta( $post_id, 'paccc_country', $country );
 		update_post_meta( $post_id, 'paccc_region', $region );
 		update_post_meta( $post_id, 'paccc_zip', sanitize_text_field( $addr['zip'] ) );
-		update_post_meta( $post_id, 'paccc_website', esc_url_raw( $website ) );
+		update_post_meta( $post_id, 'paccc_website', $website );
 		update_post_meta( $post_id, 'paccc_email', is_email( $email ) ? $email : '' );
 		if ( '' !== $profile ) {
 			$purl = esc_url_raw( $profile );
@@ -415,6 +447,7 @@ function paccc_md_handle_import() {
 				'paccc_skipped'     => $skipped,
 				'paccc_failed'      => $failed,
 				'paccc_country_set' => $country_set,
+				'paccc_site_set'    => $site_set,
 			)
 		)
 	);
