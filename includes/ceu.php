@@ -71,6 +71,7 @@ function paccc_ceu_register_cpt() {
 			'rewrite'         => false,
 			'supports'        => array( 'title' ),
 			'capability_type' => 'post',
+			'capabilities'    => paccc_md_admin_only_post_caps(), // Administrators only
 			'map_meta_cap'    => true,
 		)
 	);
@@ -93,6 +94,14 @@ function paccc_ceu_register_cpt() {
 			'hierarchical'      => true,
 			'show_ui'           => true,
 			'show_admin_column' => true,
+			// Administrators only (default would let Editors manage terms and
+			// anyone who can edit posts assign them).
+			'capabilities'      => array(
+				'manage_terms' => 'manage_options',
+				'edit_terms'   => 'manage_options',
+				'delete_terms' => 'manage_options',
+				'assign_terms' => 'manage_options',
+			),
 			'show_in_rest'      => false,
 			'rewrite'           => false,
 		)
@@ -125,7 +134,7 @@ function paccc_ceu_admin_submenus() {
 		$parent,
 		'Add New CEU',
 		'Add New CEU',
-		'edit_posts',
+		'manage_options', // Administrators only
 		'post-new.php?post_type=' . PACCC_CEU_CPT
 	);
 
@@ -133,7 +142,7 @@ function paccc_ceu_admin_submenus() {
 		$parent,
 		'Providers',
 		'Providers',
-		'manage_categories',
+		'manage_options', // Administrators only
 		'edit-tags.php?taxonomy=' . PACCC_CEU_TAX . '&amp;post_type=' . PACCC_CEU_CPT
 	);
 }
@@ -242,11 +251,22 @@ function paccc_ceu_provider_edit_fields( $term ) {
 }
 add_action( PACCC_CEU_TAX . '_edit_form_fields', 'paccc_ceu_provider_edit_fields' );
 
-/** Persist provider logo + website on term create/edit. */
+/**
+ * Persist provider logo + website on term create/edit.
+ *
+ * created_/edited_ hooks also fire when a term is created indirectly (e.g. a
+ * CEU save auto-creating its Presenter term), so check the capability here
+ * rather than trusting the caller. WordPress's own term screens verify their
+ * nonces before these hooks run.
+ */
 function paccc_ceu_provider_save_fields( $term_id ) {
+	$tax = get_taxonomy( PACCC_CEU_TAX );
+	if ( ! $tax || ! current_user_can( $tax->cap->edit_terms ) ) {
+		return;
+	}
 	if ( isset( $_POST['paccc_provider_logo_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$logo_id = (int) $_POST['paccc_provider_logo_id']; // phpcs:ignore WordPress.Security.NonceVerification
-		if ( $logo_id ) {
+		if ( $logo_id && wp_attachment_is_image( $logo_id ) ) {
 			update_term_meta( $term_id, 'paccc_provider_logo_id', $logo_id );
 		} else {
 			delete_term_meta( $term_id, 'paccc_provider_logo_id' );

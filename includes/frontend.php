@@ -177,11 +177,13 @@ function paccc_md_render_contact_rows( $m ) {
 		<?php
 	endif;
 
-	if ( '' !== trim( (string) $m->email ) ) :
+	if ( is_email( $m->email ) ) :
+		// antispambot() entity-encodes the address (href and text) so simple
+		// scrapers can't harvest it; is_email() guarantees it's a bare address.
 		?>
 		<div class="paccc-member-email-row">
 			<dt>Email</dt>
-			<dd><a class="paccc-member-contact" href="<?php echo esc_url( 'mailto:' . $m->email ); ?>"><?php echo esc_html( $m->email ); ?></a></dd>
+			<dd><a class="paccc-member-contact" href="mailto:<?php echo antispambot( $m->email ); // phpcs:ignore WordPress.Security.EscapeOutput ?>"><?php echo antispambot( $m->email ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a></dd>
 		</div>
 		<?php
 	endif;
@@ -239,7 +241,7 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 4 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 5 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
 
 		// Alphabetize by the name shown as each listing's heading (person's
@@ -321,7 +323,7 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 4, // bump whenever the cached list markup changes
+				'v'            => 5, // bump whenever the cached list markup changes
 				'members_html' => $members_html,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
@@ -1318,12 +1320,13 @@ add_shortcode( 'paccc_member_website', 'paccc_md_website_shortcode' );
 function paccc_md_email_shortcode( $atts ) {
 	$atts = shortcode_atts( array( 'id' => 0, 'text' => '' ), $atts, 'paccc_member_email' );
 	$m    = paccc_md_shortcode_target( $atts );
-	if ( ! $m || '' === trim( (string) $m->email ) ) {
+	if ( ! $m || ! is_email( $m->email ) ) {
 		return '';
 	}
 
-	$text = '' !== $atts['text'] ? $atts['text'] : $m->email;
-	return '<a class="paccc-member-contact" href="' . esc_url( 'mailto:' . $m->email ) . '">' . esc_html( $text ) . '</a>';
+	// Entity-encode the address (anti-harvesting); custom link text is escaped.
+	$text = '' !== $atts['text'] ? esc_html( $atts['text'] ) : antispambot( $m->email );
+	return '<a class="paccc-member-contact" href="mailto:' . antispambot( $m->email ) . '">' . $text . '</a>';
 }
 add_shortcode( 'paccc_member_email', 'paccc_md_email_shortcode' );
 

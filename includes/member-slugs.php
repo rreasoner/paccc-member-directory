@@ -167,6 +167,11 @@ function paccc_md_maybe_migrate_member_slugs() {
 	if ( 'done' === get_option( 'paccc_md_slugs_by_member_name' ) ) {
 		return;
 	}
+	// admin_init also fires for admin-post.php / admin-ajax.php requests from
+	// logged-out visitors -- only let an administrator trigger the bulk rewrite.
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
 	$started = (int) get_option( 'paccc_md_slugs_migration_started', 0 );
 	if ( $started && ( time() - $started ) < 5 * MINUTE_IN_SECONDS ) {
 		return; // another request is running it right now

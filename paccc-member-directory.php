@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Suite
  * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
- * Version:           2.35.2
+ * Version:           2.36.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.35.2' );
+define( 'PACCC_MD_VERSION', '2.36.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -164,6 +164,30 @@ function paccc_md_ceus() {
 }
 
 /**
+ * Capabilities for the plugin's post types: every create/edit/publish/delete
+ * permission maps to manage_options, so only Administrators can manage Members
+ * and CEUs (Editors/Authors/Contributors can't). With map_meta_cap, the
+ * per-post meta caps (edit_post, delete_post) resolve to these as well.
+ * Reading published entries is unaffected, and the member portal is too -- it
+ * saves a member's own profile directly, not through these capabilities.
+ */
+function paccc_md_admin_only_post_caps() {
+	return array(
+		'create_posts'           => 'manage_options',
+		'edit_posts'             => 'manage_options',
+		'edit_others_posts'      => 'manage_options',
+		'edit_published_posts'   => 'manage_options',
+		'edit_private_posts'     => 'manage_options',
+		'publish_posts'          => 'manage_options',
+		'read_private_posts'     => 'manage_options',
+		'delete_posts'           => 'manage_options',
+		'delete_others_posts'    => 'manage_options',
+		'delete_published_posts' => 'manage_options',
+		'delete_private_posts'   => 'manage_options',
+	);
+}
+
+/**
  * Register the member post type. The business name is the post title, so each
  * member gets a real permalink such as /paccc-certified-members/pet-resort-marketing/,
  * nested under the same base as the directory page.
@@ -208,6 +232,7 @@ function paccc_md_register_cpt() {
 			),
 			'supports'           => array( 'title' ),
 			'capability_type'    => 'post',
+			'capabilities'       => paccc_md_admin_only_post_caps(), // Administrators only
 			'map_meta_cap'       => true,
 		)
 	);
@@ -359,6 +384,10 @@ function paccc_md_map_settings() {
  */
 function paccc_md_maybe_migrate() {
 	if ( get_option( 'paccc_md_migrated_to_cpt' ) ) {
+		return;
+	}
+	// admin_init also fires for logged-out admin-post/admin-ajax requests.
+	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 

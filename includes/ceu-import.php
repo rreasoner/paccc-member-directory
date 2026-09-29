@@ -510,7 +510,8 @@ function paccc_ceu_handle_import() {
 		$path = isset( $_FILES['paccc_ceu_file']['tmp_name'] ) ? $_FILES['paccc_ceu_file']['tmp_name'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 	}
 
-	if ( ! $path || ! file_exists( $path ) ) {
+	// Only ever read a file PHP itself received in this upload.
+	if ( ! $path || ! is_uploaded_file( $path ) ) {
 		wp_safe_redirect( add_query_arg( 'paccc_ceu_error', rawurlencode( 'No spreadsheet was received.' ), $redirect ) );
 		exit;
 	}
