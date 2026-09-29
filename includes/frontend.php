@@ -967,24 +967,38 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 			<?php endif; ?>
 			<?php
 			/*
-			 * The page heading shows the member's name (the_title is swapped by
-			 * paccc_md_single_title_member_name()), so the first row here is the
-			 * Business Name -- omitted when there's no separate business (imports
-			 * used the person's name as the business name) or no person name (the
-			 * heading then falls back to the business name itself).
-			 * $show_business_name is kept for backward compatibility; both the
-			 * template and the [paccc_member] shortcode now render the same rows.
+			 * The member's (person's) name leads, the business name follows.
+			 *
+			 * [paccc_member] shortcode ($show_business_name = true): the page has
+			 * no H1 of ours, so the card carries its own heading row -- the
+			 * member's name, styled as a heading by .paccc-member-heading-row
+			 * (label hidden). Falls back to the business name if no person name.
+			 * Built-in template ($show_business_name = false): the page H1 is the
+			 * member's name (the_title is swapped by
+			 * paccc_md_single_title_member_name()), so no heading row here.
+			 *
+			 * Either way a normal "Business Name" row follows -- omitted when there
+			 * is no person name (the heading already shows the business) or the
+			 * business just repeats the person's name (imports used the name as
+			 * the business name).
 			 * Member Number stays last and de-emphasized rather than removed
 			 * outright, since it's still useful for e.g. a member
 			 * cross-checking their own certificate.
 			 */
 			$paccc_person   = trim( (string) $m->member_name );
 			$paccc_business = trim( (string) $m->business_name );
+			$paccc_heading  = '' !== $paccc_person ? $paccc_person : $paccc_business;
 			$paccc_show_biz = '' !== $paccc_person && '' !== $paccc_business && 0 !== strcasecmp( $paccc_person, $paccc_business );
 			?>
 			<dl class="paccc-member-details">
+				<?php if ( $show_business_name && '' !== $paccc_heading ) : ?>
+					<div class="paccc-member-heading-row paccc-member-business-name-row">
+						<dt>Member Name</dt>
+						<dd><?php echo esc_html( $paccc_heading ); ?></dd>
+					</div>
+				<?php endif; ?>
 				<?php if ( $paccc_show_biz ) : ?>
-					<div class="paccc-member-business-name-row paccc-member-name-row">
+					<div class="paccc-member-biz-row">
 						<dt>Business Name</dt>
 						<dd><?php echo esc_html( $paccc_business ); ?></dd>
 					</div>

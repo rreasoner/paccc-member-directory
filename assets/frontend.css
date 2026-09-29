@@ -681,10 +681,15 @@
    generic dd padding-bottom above; margin (outside the border) keeps the gap
    below without lengthening the accent bar, and line-height keeps the bar to
    the text height. */
+/* The card's heading row: the member's (person's) name. .paccc-member-heading-row
+   is the current class; .paccc-member-business-name-row is kept on the same row
+   so any existing custom CSS aimed at the old heading keeps working. */
+.paccc-member-heading-row dt,
 .paccc-member-business-name-row dt {
 	display: none;
 }
 
+.paccc-member-single .paccc-member-details .paccc-member-heading-row dd,
 .paccc-member-single .paccc-member-details .paccc-member-business-name-row dd {
 	grid-column: 1 / -1;
 	font-family: var(--paccc-heading-font, inherit);
