@@ -239,7 +239,7 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 2 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 3 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
 
 		// Prime attachment (logo) caches in one pass so per-member image lookups
@@ -310,7 +310,7 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 2, // bump whenever the cached list markup changes
+				'v'            => 3, // bump whenever the cached list markup changes
 				'members_html' => $members_html,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
@@ -465,7 +465,7 @@ function paccc_md_shortcode( $atts ) {
 				<?php endif; ?>
 			</div>
 
-			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of business name">
+			<div class="paccc-alpha-filter" role="group" aria-label="Filter members by first letter of name">
 				<span class="paccc-alpha-label">Jump to a letter</span>
 				<button type="button" class="paccc-alpha paccc-alpha-current" data-letter="" aria-pressed="true">All</button>
 				<?php foreach ( range( 'A', 'Z' ) as $letter ) : ?>
@@ -573,9 +573,11 @@ function paccc_md_render_members_list( $members ) {
 						} else {
 							$location = trim( $m->city . ( $m->city && $m->state ? ', ' : '' ) . $m->state );
 						}
-						// Bucket for the A-Z name filter: first letter of the business
-						// name, uppercased; anything not A-Z (numbers, symbols) is "#".
-						$name_first  = strtoupper( substr( remove_accents( trim( (string) $m->business_name ) ), 0, 1 ) );
+						// Bucket for the A-Z name filter: first letter of the name shown
+						// as the listing heading (person's name, else business name),
+						// uppercased; anything not A-Z (numbers, symbols) is "#".
+						$name_shown  = '' !== trim( (string) $m->member_name ) ? $m->member_name : $m->business_name;
+						$name_first  = strtoupper( substr( remove_accents( trim( (string) $name_shown ) ), 0, 1 ) );
 						$name_letter = ( $name_first >= 'A' && $name_first <= 'Z' ) ? $name_first : '#';
 						?>
 						<article class="paccc-member" id="member-<?php echo esc_attr( $m->member_number ); ?>" data-state="<?php echo esc_attr( $m->state ); ?>" data-country="<?php echo esc_attr( $country_code ); ?>" data-region="<?php echo esc_attr( $region_key ); ?>" data-letter="<?php echo esc_attr( $name_letter ); ?>">
