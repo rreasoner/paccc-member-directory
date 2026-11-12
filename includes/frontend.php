@@ -241,7 +241,7 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 5 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 6 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
 
 		// Alphabetize by the name shown as each listing's heading (person's
@@ -323,7 +323,7 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 5, // bump whenever the cached list markup changes
+				'v'            => 6, // bump whenever the cached list markup changes
 				'members_html' => $members_html,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
@@ -665,10 +665,10 @@ function paccc_md_render_members_list( $members ) {
 										<dt>Certification(s)</dt>
 										<dd><?php echo esc_html( $certs ? $certs : '—' ); ?></dd>
 									</div>
-									<?php if ( $m->ceus ) : ?>
+									<?php if ( $m->ceu_names ) : ?>
 										<div>
 											<dt>CEU(s)</dt>
-											<dd><?php echo esc_html( implode( ', ', $m->ceus ) ); ?></dd>
+											<dd><?php echo esc_html( implode( ', ', $m->ceu_names ) ); ?></dd>
 										</div>
 									<?php endif; ?>
 									<div>
@@ -1023,12 +1023,12 @@ function paccc_md_member_details_html( $m, $show_business_name = false ) {
 						</dd>
 					</div>
 				<?php endif; ?>
-				<?php if ( $m->ceus ) : ?>
+				<?php if ( $m->ceu_names ) : ?>
 					<div class="paccc-member-ceu-row">
 						<dt>CEU(s)</dt>
 						<dd>
 							<ul class="paccc-ceu-list">
-								<?php foreach ( $m->ceus as $ceu ) : ?>
+								<?php foreach ( $m->ceu_names as $ceu ) : ?>
 									<li class="paccc-ceu"><?php echo esc_html( $ceu ); ?></li>
 								<?php endforeach; ?>
 							</ul>
@@ -1115,7 +1115,7 @@ function paccc_md_shortcode_target( $atts ) {
  * text, for placing individual values in separate page-builder modules.
  *
  * Keys: business_name, member_name, member_number, address1, address2, city,
- * state, zip, location, address, website, email, permalink. For state, add
+ * state, zip, location, address, website, email, permalink, ceus. For state, add
  * format="name" to output the full state name instead of the 2-letter code.
  */
 function paccc_md_field_shortcode( $atts ) {
@@ -1156,6 +1156,8 @@ function paccc_md_field_shortcode( $atts ) {
 			return esc_html( $m->website );
 		case 'email':
 			return esc_html( $m->email );
+		case 'ceus':
+			return esc_html( implode( ', ', $m->ceu_names ) );
 		case 'permalink':
 		case 'url':
 			return esc_url( $m->permalink );

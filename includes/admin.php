@@ -241,7 +241,7 @@ function paccc_md_shortcodes_reference() {
 		),
 		array(
 			'code' => '[paccc_member_field key="member_name"]',
-			'desc' => 'One member field as plain text. Keys: business_name, member_name, member_number, address1, address2, city, state, zip, location, address, website, email, permalink. Add format="name" for the full state name.',
+			'desc' => 'One member field as plain text. Keys: business_name, member_name, member_number, address1, address2, city, state, zip, location, address, website, email, ceus, permalink. Add format="name" for the full state name.',
 		),
 		array(
 			'code' => '[paccc_member_certifications]',

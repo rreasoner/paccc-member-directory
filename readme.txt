@@ -22,6 +22,21 @@ Frontend:
 * The list paginates at 20 members per page; choosing a state resets to page 1. Change the page size with the paccc_md_per_page filter.
 * Unique links (?paccc_member=1000001) auto-open and scroll to that member.
 
+== 2.37 — old-site CEUs + CSV exports ==
+
+* PACCC Suite > Import Old CEUs: adds the CEUs members logged on the old site
+  (wpDataTables "My CEUs" CSV + old users CSV) to their member profiles. Matches
+  by email, then by first + last name for members with no email; a
+  match-overrides CSV (old_user_id, member_post_id) settles the rest. Preview
+  first; the import only adds, is keyed on the old wdt_ID, and is safe to re-run.
+* Old-site CEUs are stored as entered (paccc_legacy_ceus member meta) apart from
+  the admin CEU(s) checklist, and shown by name only, once per name, alongside
+  it on the directory, member page and portal. A read-only box on the member
+  edit screen lists them in full, with a "remove all" for wrong matches.
+* "Export members (CSV)" and "Export CEUs (CSV)" buttons on the All Members and
+  All CEUs screens.
+* [paccc_member_field key="ceus"] outputs the member's CEU names.
+
 == 2.0 — member pages ==
 
 Members are now a custom post type: each member has its own URL

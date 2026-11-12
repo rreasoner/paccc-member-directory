@@ -257,7 +257,7 @@ function paccc_md_portal_shortcode( $atts ) {
 			<div class="paccc-portal-readonly">
 				<p><span class="paccc-portal-rolabel">Member Number</span> <?php echo esc_html( $m->member_number ); ?></p>
 				<p><span class="paccc-portal-rolabel">Certification(s)</span> <?php echo $m->certifications ? esc_html( implode( ', ', $m->certifications ) ) : '—'; ?></p>
-				<p><span class="paccc-portal-rolabel">CEU(s)</span> <?php echo $m->ceus ? esc_html( implode( ', ', $m->ceus ) ) : '—'; ?></p>
+				<p><span class="paccc-portal-rolabel">CEU(s)</span> <?php echo $m->ceu_names ? esc_html( implode( ', ', $m->ceu_names ) ) : '—'; ?></p>
 				<p class="paccc-portal-note">Member Number, Certifications and CEUs are maintained by PACCC and can only be changed by an administrator.</p>
 			</div>
 
