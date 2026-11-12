@@ -44,9 +44,12 @@ function paccc_md_legacy_ceu_label( $row ) {
 }
 
 /**
- * The CEU names shown on the directory, member page and portal: the admin-set
- * CEU(s) first, then old-site CEUs. A name appears once even if it was logged
- * several times (compared ignoring case and spacing); the first spelling wins.
+ * A de-duplicated list of CEU names: the admin-set CEU(s) first, then any
+ * old-site CEUs passed in. A name appears once even if it was logged several
+ * times (compared ignoring case and spacing); the first spelling wins.
+ *
+ * Old-site CEUs are private: paccc_md_get_member() passes them only into
+ * portal_ceu_names (the member's own portal), never into the public ceu_names.
  */
 function paccc_md_ceu_display_names( $tag_ceus, $legacy_rows ) {
 	$names = array();
@@ -73,29 +76,30 @@ function paccc_md_ceu_display_names( $tag_ceus, $legacy_rows ) {
 }
 
 /* ---------------------------------------------------------------------------
- * Admin: read-only "CEUs from the old site" box on the member edit screen
+ * Admin: read-only "From the old site" list, shown inside the CEU(s) row of
+ * the Member Details box (called from paccc_md_render_meta_box in admin.php).
  * ------------------------------------------------------------------------ */
 
-function paccc_md_add_legacy_ceu_meta_box() {
+function paccc_md_render_legacy_ceu_list( $post ) {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	add_meta_box( 'paccc_md_legacy_ceus', 'CEUs from the old site', 'paccc_md_render_legacy_ceu_meta_box', PACCC_MD_CPT, 'normal', 'default' );
-}
-add_action( 'add_meta_boxes', 'paccc_md_add_legacy_ceu_meta_box' );
-
-function paccc_md_render_legacy_ceu_meta_box( $post ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
 	$rows = paccc_md_legacy_ceus( $post->ID );
 	if ( isset( $_GET['paccc_legacy_removed'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		echo '<div class="notice notice-success inline"><p>Old-site CEUs removed from this member.</p></div>';
 	}
 	if ( ! $rows ) {
-		echo '<p>None. Old-site CEUs are added from <strong>PACCC Suite &rarr; Import Old CEUs</strong>.</p>';
-		return;
+		return; // nothing imported for this member: keep the CEU(s) row as it was
 	}
 	?>
-	<p class="description">
-		Imported as entered on the old site. Only the name (or the code, if the name was blank) shows on the directory and member page; a name logged more than once shows once.
+	<div class="paccc-md-legacy-ceus" style="margin-top:16px;">
+	<p style="margin:0 0 4px;"><strong><?php echo esc_html( sprintf( 'From the old site (%d)', count( $rows ) ) ); ?></strong></p>
+	<p class="description" style="margin-top:0;">
+		Imported as entered on the old site. These are <strong>private</strong>: they never appear on the public member page or directory. The member sees the names (or the code, if the name was blank) in their own portal when logged in; a name logged more than once shows once.
 	</p>
 	<table class="widefat striped" style="margin-top:8px;">
 		<thead>
@@ -132,6 +136,7 @@ function paccc_md_render_legacy_ceu_meta_box( $post ) {
 			Remove all old-site CEUs from this member
 		</a>
 	</p>
+	</div>
 	<?php
 }
 
@@ -142,11 +147,24 @@ function paccc_md_handle_remove_legacy_ceus() {
 		wp_die( 'Sorry, you are not allowed to do that.' );
 	}
 	delete_post_meta( $post_id, PACCC_MD_LEGACY_CEU_META );
-	paccc_md_flush_directory_cache();
-	if ( function_exists( 'rocket_clean_post' ) ) {
-		rocket_clean_post( $post_id );
-	}
 	wp_safe_redirect( add_query_arg( 'paccc_legacy_removed', 1, get_edit_post_link( $post_id, 'url' ) ) );
 	exit;
 }
 add_action( 'admin_post_paccc_md_remove_legacy_ceus', 'paccc_md_handle_remove_legacy_ceus' );
+
+/**
+ * 2.37.0 briefly showed old-site CEUs on public member pages. After updating
+ * to a version that keeps them private, empty the directory cache and WP
+ * Rocket's page cache once, so no cached public page still lists them.
+ */
+function paccc_md_purge_public_caches_after_update() {
+	if ( get_option( 'paccc_md_purged_for_version' ) === PACCC_MD_VERSION ) {
+		return;
+	}
+	update_option( 'paccc_md_purged_for_version', PACCC_MD_VERSION, false );
+	paccc_md_flush_directory_cache();
+	if ( function_exists( 'rocket_clean_domain' ) ) {
+		rocket_clean_domain();
+	}
+}
+add_action( 'admin_init', 'paccc_md_purge_public_caches_after_update' );

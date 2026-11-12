@@ -10,6 +10,8 @@
  *   - Optional match-overrides CSV: old_user_id, member_post_id (0 = skip).
  *
  * Each old user is matched to a member profile on this site:
+ * Only PUBLISHED member profiles are matched (drafts, pending, private and
+ * trashed ones are not).
  *   1. by email -- the member's email or its linked login's email;
  *   2. otherwise by first + last name, but only to a member with NO email on
  *      file (a name match to a member whose email differs is listed for review
@@ -21,6 +23,9 @@
  * nothing already on a member -- old-site records or anything else -- is
  * changed. Values are stored as entered (trimmed); spelling and dates are not
  * corrected.
+ *
+ * Imported CEUs are listed (read-only, admins only) under "From the old site"
+ * in the CEU(s) row of each member's Member Details box.
  *
  * Rows that are skipped: completely empty rows, rows whose User isn't a user
  * ID, rows whose old account no longer exists (not in the users CSV), obvious
@@ -117,8 +122,10 @@ function paccc_md_legacy_is_test( $title, $code ) {
 }
 
 /**
- * Every member profile (except Trash) with the fields used for matching, plus
- * email/name lookups and an index of old-site row ids already imported.
+ * Published member profiles with the fields used for matching, plus email/name
+ * lookups. The index of old-site row ids already imported covers every
+ * non-trashed member, so a record imported before a member was unpublished is
+ * never added to someone else on a re-run.
  */
 function paccc_md_legacy_member_index() {
 	$posts = get_posts(
@@ -137,6 +144,17 @@ function paccc_md_legacy_member_index() {
 	$wdt     = array();
 
 	foreach ( $posts as $p ) {
+		$existing = get_post_meta( $p->ID, PACCC_MD_LEGACY_CEU_META, true );
+		if ( is_array( $existing ) ) {
+			foreach ( array_keys( $existing ) as $k ) {
+				$wdt[ (int) $k ] = $p->ID;
+			}
+		}
+
+		if ( 'publish' !== $p->post_status ) {
+			continue; // only published members can be matched
+		}
+
 		$member_email = (string) get_post_meta( $p->ID, 'paccc_email', true );
 		$member_name  = (string) get_post_meta( $p->ID, 'paccc_member_name', true );
 		$uid          = (int) get_post_meta( $p->ID, 'paccc_user_id', true );
@@ -164,13 +182,6 @@ function paccc_md_legacy_member_index() {
 			$n = paccc_md_legacy_norm_name( $n );
 			if ( '' !== $n ) {
 				$names[ $n ][ $p->ID ] = true;
-			}
-		}
-
-		$existing = get_post_meta( $p->ID, PACCC_MD_LEGACY_CEU_META, true );
-		if ( is_array( $existing ) ) {
-			foreach ( array_keys( $existing ) as $k ) {
-				$wdt[ (int) $k ] = $p->ID;
 			}
 		}
 	}
@@ -209,7 +220,7 @@ function paccc_md_legacy_match( $old, $index, $overrides ) {
 			$result['post_id'] = $pid;
 		} else {
 			$result['status'] = 'override_invalid';
-			$result['method'] = 'override: member #' . $pid . ' not found';
+			$result['method'] = 'override: member #' . $pid . ' not found or not published';
 		}
 		return $result;
 	}
@@ -467,7 +478,7 @@ function paccc_md_legacy_run( $ceus_path, $users_path, $over_path, $write ) {
 		$people[] = $person;
 	}
 
-	if ( $write && $adds ) {
+	if ( $write && $adds ) { // private data only: no public page changes, so no cache purge needed
 		foreach ( $adds as $pid => $recs ) {
 			$existing = get_post_meta( $pid, PACCC_MD_LEGACY_CEU_META, true );
 			if ( ! is_array( $existing ) ) {
@@ -480,10 +491,6 @@ function paccc_md_legacy_run( $ceus_path, $users_path, $over_path, $write ) {
 				}
 			}
 			update_post_meta( $pid, PACCC_MD_LEGACY_CEU_META, $existing );
-		}
-		paccc_md_flush_directory_cache();
-		if ( function_exists( 'rocket_clean_domain' ) ) {
-			rocket_clean_domain(); // WP Rocket: member pages now show more CEUs
 		}
 	}
 
@@ -636,14 +643,14 @@ function paccc_md_render_legacy_import() {
 		<p>
 			Adds the CEUs members logged on the old site to their member profiles here. It only <strong>adds</strong>:
 			nothing already on a member is changed, and each old record is added once, so running it again is safe.
-			Records are kept exactly as entered; only the CEU name (or its code, if the name was blank) is shown on the directory and member pages.
+			Records are kept exactly as entered and are <strong>private</strong>: they are never shown on the public member pages or directory, only to the member in their own portal (the CEU name, or its code if the name was blank).
 		</p>
 		<ol>
 			<li>Choose the old site&rsquo;s <strong>My CEUs</strong> CSV and <strong>users</strong> CSV and click <strong>Preview</strong>. Nothing is written.</li>
 			<li>Check the people marked <em>Needs review</em>, <em>Ambiguous</em> or <em>No match</em>. To assign one, add a line to a match-overrides CSV with the columns <code>old_user_id,member_post_id</code> (use <code>0</code> to skip someone), and preview again with it.</li>
 			<li>Click <strong>Import</strong> with the same files.</li>
 		</ol>
-		<p class="description">Matching: by email first (the member&rsquo;s email or its login&rsquo;s email); otherwise by first + last name, but only to a member with no email on file. An override always wins.</p>
+		<p class="description">Only published members are matched. Matching: by email first (the member&rsquo;s email or its login&rsquo;s email); otherwise by first + last name, but only to a member with no email on file. An override always wins.</p>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" style="margin:16px 0;">
 			<input type="hidden" name="action" value="paccc_md_legacy_ceu_run" />

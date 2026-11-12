@@ -22,6 +22,22 @@ Frontend:
 * The list paginates at 20 members per page; choosing a state resets to page 1. Change the page size with the paccc_md_per_page filter.
 * Unique links (?paccc_member=1000001) auto-open and scroll to that member.
 
+== 2.37.2 — old-site CEUs shown with the member's CEU(s) ==
+
+* On the member edit screen, the old-site CEU list moved from its own box
+  (below Yoast) into the CEU(s) row of Member Details, under "From the old
+  site". Still read-only, admins only, and still private on the front end.
+
+== 2.37.1 — old-site CEUs are private ==
+
+* CEUs imported from the old site are members' own free-text entries, some of
+  them personal notes, so they no longer appear anywhere public: not on member
+  pages, the directory (even with ceus="true") or [paccc_member_field
+  key="ceus"]. They show only in the logged-in member's portal, and to admins
+  on the member edit screen. Public pages show only the CEU(s) set by an admin.
+* On the first admin page load after updating, the directory cache and WP
+  Rocket's page cache are emptied once so no cached page still lists them.
+
 == 2.37 — old-site CEUs + CSV exports ==
 
 * PACCC Suite > Import Old CEUs: adds the CEUs members logged on the old site
@@ -36,6 +52,9 @@ Frontend:
 * "Export members (CSV)" and "Export CEUs (CSV)" buttons on the All Members and
   All CEUs screens.
 * [paccc_member_field key="ceus"] outputs the member's CEU names.
+* [paccc_directory] no longer lists CEUs unless you add ceus="true"
+  (e.g. [paccc_directory ceus="true"]). Member pages and the portal still
+  show them.
 
 == 2.0 — member pages ==
 

@@ -33,6 +33,7 @@ delete_option( 'paccc_portal_page_id' );
 delete_option( 'paccc_md_slugs_by_member_name' );
 delete_option( 'paccc_md_slugs_migrated_count' );
 delete_option( 'paccc_md_slugs_migration_started' );
+delete_option( 'paccc_md_purged_for_version' );
 
 // Remove the member role (member WP accounts are left for the admin to review).
 if ( function_exists( 'remove_role' ) ) {

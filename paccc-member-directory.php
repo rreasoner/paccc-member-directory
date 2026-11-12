@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Suite
  * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
- * Version:           2.37.0
+ * Version:           2.37.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.37.0' );
+define( 'PACCC_MD_VERSION', '2.37.1' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -260,7 +260,10 @@ function paccc_md_get_member( $post ) {
 	}
 
 	// CEUs imported from the old site (includes/legacy-ceus.php). Kept apart
-	// from the admin-managed CEU(s) list above; ceu_names is what's displayed.
+	// from the admin-managed CEU(s) list above. They are the member's own,
+	// free-text entries (some are personal notes), so they are PRIVATE: only
+	// portal_ceu_names includes them. ceu_names -- used on every public page,
+	// the directory and shortcodes -- is the admin-managed list only.
 	$legacy_ceus = paccc_md_legacy_ceus( $post->ID );
 
 	return (object) array(
@@ -271,7 +274,8 @@ function paccc_md_get_member( $post ) {
 		'certifications' => array_values( $certs ),
 		'ceus'           => array_values( $ceus ),        // admin-managed CEU(s) checklist
 		'legacy_ceus'    => $legacy_ceus,                 // old-site records (full detail)
-		'ceu_names'      => paccc_md_ceu_display_names( $ceus, $legacy_ceus ), // shown on the front end
+		'ceu_names'      => paccc_md_ceu_display_names( $ceus, array() ),        // PUBLIC: admin-managed CEU(s) only
+		'portal_ceu_names' => paccc_md_ceu_display_names( $ceus, $legacy_ceus ), // member's own portal only
 		'image_id'       => (int) get_post_meta( $post->ID, 'paccc_image_id', true ),
 		'address1'       => (string) get_post_meta( $post->ID, 'paccc_address1', true ),
 		'address2'       => (string) get_post_meta( $post->ID, 'paccc_address2', true ),

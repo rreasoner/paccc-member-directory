@@ -224,10 +224,13 @@ function paccc_md_shortcode( $atts ) {
 	// heading="0" / intro="0" hide the built-in heading and/or intro sentence,
 	// independently -- e.g. a Themer layout with its own H1 can drop the
 	// duplicate heading (heading="0") while keeping the intro sentence.
-	$atts         = shortcode_atts( array( 'heading' => '1', 'intro' => '1' ), $atts, 'paccc_directory' );
+	// ceus="true" adds each member's CEU(s) to the View Member panel; they are
+	// left out by default (not rendered at all, rather than hidden with CSS).
+	$atts         = shortcode_atts( array( 'heading' => '1', 'intro' => '1', 'ceus' => '0' ), $atts, 'paccc_directory' );
 	$paccc_falsey = array( '0', 'false', 'no' );
 	$show_heading = ! in_array( strtolower( trim( (string) $atts['heading'] ) ), $paccc_falsey, true );
 	$show_intro   = ! in_array( strtolower( trim( (string) $atts['intro'] ) ), $paccc_falsey, true );
+	$show_ceus    = in_array( strtolower( trim( (string) $atts['ceus'] ) ), array( '1', 'true', 'yes' ), true );
 
 	// Record the page hosting the shortcode (used for the back-link on
 	// member pages) unless one has been chosen manually.
@@ -241,7 +244,7 @@ function paccc_md_shortcode( $atts ) {
 	// costly to build on every hit but change only when a member changes, so
 	// cache them. paccc_md_flush_directory_cache() clears this on any change.
 	$cache = get_transient( 'paccc_md_directory_cache' );
-	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 6 !== (int) $cache['v'] ) {
+	if ( ! is_array( $cache ) || empty( $cache['v'] ) || 8 !== (int) $cache['v'] ) {
 		$members = paccc_md_get_members();
 
 		// Alphabetize by the name shown as each listing's heading (person's
@@ -307,8 +310,15 @@ function paccc_md_shortcode( $atts ) {
 		}
 		unset( $paccc_ct );
 
-		$total        = count( $members );
-		$members_html = paccc_md_render_members_list( $members );
+		$total = count( $members );
+
+		// Both variants of the list (without / with CEUs) are cached, so pages
+		// using either form of the shortcode stay fast.
+		$members_html_by_ceus = array(
+			0 => paccc_md_render_members_list( $members, false ),
+			1 => paccc_md_render_members_list( $members, true ),
+		);
+		$members_html = $members_html_by_ceus[ $show_ceus ? 1 : 0 ];
 
 		$schema_html = '';
 		$paccc_sc    = paccc_md_directory_schema( $members );
@@ -323,8 +333,8 @@ function paccc_md_shortcode( $atts ) {
 		set_transient(
 			'paccc_md_directory_cache',
 			array(
-				'v'            => 6, // bump whenever the cached list markup changes
-				'members_html' => $members_html,
+				'v'            => 8, // bump whenever the cached list markup changes
+				'members_html' => $members_html_by_ceus,
 				'schema'       => $schema_html,
 				'state_counts' => $state_counts,
 				'country_tree' => $country_tree,
@@ -333,7 +343,7 @@ function paccc_md_shortcode( $atts ) {
 			DAY_IN_SECONDS
 		);
 	} else {
-		$members_html = $cache['members_html'];
+		$members_html = $cache['members_html'][ $show_ceus ? 1 : 0 ];
 		$schema_html  = $cache['schema'];
 		$state_counts = $cache['state_counts'];
 		$country_tree = $cache['country_tree'];
@@ -548,8 +558,9 @@ add_shortcode( 'paccc_directory', 'paccc_md_shortcode' );
 
 /**
  * The directory member-list markup as a string, so the shortcode can cache it.
+ * $show_ceus adds the CEU(s) row to each member's View Member panel.
  */
-function paccc_md_render_members_list( $members ) {
+function paccc_md_render_members_list( $members, $show_ceus = false ) {
 	$countries = paccc_md_countries();
 	ob_start();
 	?>
@@ -665,7 +676,7 @@ function paccc_md_render_members_list( $members ) {
 										<dt>Certification(s)</dt>
 										<dd><?php echo esc_html( $certs ? $certs : '—' ); ?></dd>
 									</div>
-									<?php if ( $m->ceu_names ) : ?>
+									<?php if ( $show_ceus && $m->ceu_names ) : ?>
 										<div>
 											<dt>CEU(s)</dt>
 											<dd><?php echo esc_html( implode( ', ', $m->ceu_names ) ); ?></dd>
