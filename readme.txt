@@ -22,6 +22,41 @@ Frontend:
 * The list paginates at 20 members per page; choosing a state resets to page 1. Change the page size with the paccc_md_per_page filter.
 * Unique links (?paccc_member=1000001) auto-open and scroll to that member.
 
+== 2.40.0 — one CEU list ==
+
+* Imported and catalog CEUs are now one list everywhere, with no separate
+  "old site" section or labels: one table on the member edit screen (CEU,
+  Provider, Code, Hours / CEUs, Date, Public page, ×), and one table + CSV in
+  the portal (CEU, Provider, Code, Hours / CEUs, Date).
+* Any single CEU can be removed with its ×. A removed imported record is kept
+  in paccc_legacy_ceus_removed (not deleted) and is never re-imported. The
+  "remove all" link is gone.
+* Visibility is unchanged: imported CEUs stay private (portal only); the admin
+  table's "Public page" column shows which CEUs appear publicly.
+* The member export's old_site_ceus column is now imported_ceus.
+
+== 2.39.0 — CEU table + CSV download in the member portal ==
+
+* The portal's CEU(s) line is now a table of every CEU on the member, with
+  all the detail: CEU, Provider, Code, Hours / CEUs, Date and Source (PACCC
+  catalog, or "Old site" for imported records, shown exactly as entered).
+  Every record is listed, including repeats.
+* "Download CSV" next to it downloads the same table. Members can only ever
+  download their own (the member comes from the login, not the request).
+
+== 2.38.0 — pick member CEUs from the CEU catalog ==
+
+* On the member edit screen, "+ Add a CEU" now offers every program on the
+  All CEUs page: type part of a name or program code and pick it. Each member
+  keeps their own list (paccc_member_ceu_ids meta: catalog ID => name), with
+  an × to remove one. Free text is no longer accepted, and the old site-wide
+  CEU checklist (one checkbox per CEU for every member) is gone.
+* Picked CEUs are the member's public CEU(s): member page, portal,
+  [paccc_member_field key="ceus"], and the directory with ceus="true".
+  Renaming a program in the catalog updates it everywhere; a program the
+  catalog sync moves to Trash stays on members who completed it.
+* Any names saved by the old checklist are still shown and kept.
+
 == 2.37.2 — old-site CEUs shown with the member's CEU(s) ==
 
 * On the member edit screen, the old-site CEU list moved from its own box

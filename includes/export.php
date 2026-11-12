@@ -6,7 +6,7 @@
  * list screen:
  *   - Members (All Members screen): every non-trashed member profile with its
  *     member fields, the linked WordPress login (if any), its admin-set CEU(s)
- *     and any CEUs imported from the old site.
+ *     and any imported CEUs.
  *   - Approved CEUs (All CEUs screen): every non-trashed catalog program.
  *
  * Nothing is written to the database. Administrators only.
@@ -131,7 +131,7 @@ function paccc_md_handle_export_members() {
 			'user_display_name',
 			'certifications',
 			'existing_ceus',
-			'old_site_ceus',
+			'imported_ceus',
 			'city',
 			'state',
 			'country',

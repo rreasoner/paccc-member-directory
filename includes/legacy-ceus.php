@@ -75,82 +75,10 @@ function paccc_md_ceu_display_names( $tag_ceus, $legacy_rows ) {
 	return $names;
 }
 
-/* ---------------------------------------------------------------------------
- * Admin: read-only "From the old site" list, shown inside the CEU(s) row of
- * the Member Details box (called from paccc_md_render_meta_box in admin.php).
- * ------------------------------------------------------------------------ */
-
-function paccc_md_render_legacy_ceu_list( $post ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-	$post = get_post( $post );
-	if ( ! $post ) {
-		return;
-	}
-	$rows = paccc_md_legacy_ceus( $post->ID );
-	if ( isset( $_GET['paccc_legacy_removed'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-		echo '<div class="notice notice-success inline"><p>Old-site CEUs removed from this member.</p></div>';
-	}
-	if ( ! $rows ) {
-		return; // nothing imported for this member: keep the CEU(s) row as it was
-	}
-	?>
-	<div class="paccc-md-legacy-ceus" style="margin-top:16px;">
-	<p style="margin:0 0 4px;"><strong><?php echo esc_html( sprintf( 'From the old site (%d)', count( $rows ) ) ); ?></strong></p>
-	<p class="description" style="margin-top:0;">
-		Imported as entered on the old site. These are <strong>private</strong>: they never appear on the public member page or directory. The member sees the names (or the code, if the name was blank) in their own portal when logged in; a name logged more than once shows once.
-	</p>
-	<table class="widefat striped" style="margin-top:8px;">
-		<thead>
-			<tr><th>Name</th><th>Provider</th><th>Code</th><th>Hours</th><th>Date</th><th>Old row</th></tr>
-		</thead>
-		<tbody>
-			<?php foreach ( $rows as $row ) : ?>
-				<tr>
-					<td><?php echo esc_html( isset( $row['title'] ) ? $row['title'] : '' ); ?></td>
-					<td><?php echo esc_html( isset( $row['provider'] ) ? $row['provider'] : '' ); ?></td>
-					<td><?php echo esc_html( isset( $row['code'] ) ? $row['code'] : '' ); ?></td>
-					<td><?php echo esc_html( isset( $row['hours'] ) ? $row['hours'] : '' ); ?></td>
-					<td><?php echo esc_html( isset( $row['date'] ) ? $row['date'] : '' ); ?></td>
-					<td><?php echo esc_html( isset( $row['wdt_id'] ) ? $row['wdt_id'] : '' ); ?></td>
-				</tr>
-			<?php endforeach; ?>
-		</tbody>
-	</table>
-	<?php
-	$url = wp_nonce_url(
-		add_query_arg(
-			array(
-				'action' => 'paccc_md_remove_legacy_ceus',
-				'post'   => $post->ID,
-			),
-			admin_url( 'admin-post.php' )
-		),
-		'paccc_md_remove_legacy_ceus_' . $post->ID
-	);
-	?>
-	<p style="margin-top:10px;">
-		<a href="<?php echo esc_url( $url ); ?>" class="button-link" style="color:#b32d2e;"
-			onclick="return confirm('Remove all <?php echo (int) count( $rows ); ?> old-site CEUs from this member? Use this if they were matched to the wrong member. Re-running the import will add them back unless you map this person elsewhere in a match-overrides file.');">
-			Remove all old-site CEUs from this member
-		</a>
-	</p>
-	</div>
-	<?php
-}
-
-function paccc_md_handle_remove_legacy_ceus() {
-	$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
-	check_admin_referer( 'paccc_md_remove_legacy_ceus_' . $post_id );
-	if ( ! current_user_can( 'manage_options' ) || PACCC_MD_CPT !== get_post_type( $post_id ) ) {
-		wp_die( 'Sorry, you are not allowed to do that.' );
-	}
-	delete_post_meta( $post_id, PACCC_MD_LEGACY_CEU_META );
-	wp_safe_redirect( add_query_arg( 'paccc_legacy_removed', 1, get_edit_post_link( $post_id, 'url' ) ) );
-	exit;
-}
-add_action( 'admin_post_paccc_md_remove_legacy_ceus', 'paccc_md_handle_remove_legacy_ceus' );
+/*
+ * The admin view of these records is the member's single CEU table
+ * (paccc_md_render_member_ceu_picker in includes/member-ceus.php).
+ */
 
 /**
  * 2.37.0 briefly showed old-site CEUs on public member pages. After updating

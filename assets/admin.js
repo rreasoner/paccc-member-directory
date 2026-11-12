@@ -305,7 +305,7 @@
 			}
 		})();
 
-		/* ---------- CEUs: pick from the All CEUs catalog (saved with the member) ---------- */
+		/* ---------- CEUs: one table; add from the All CEUs catalog, remove any row (saved with the member) ---------- */
 		(function () {
 			var picked = document.getElementById('paccc-md-ceu-picked');
 			var none = document.getElementById('paccc-md-ceu-none');
@@ -318,7 +318,8 @@
 			if (!picked || !catalog) { return; }
 
 			function say(text) { if (msg) { msg.textContent = text || ''; } }
-			function syncEmpty() { if (none) { none.hidden = picked.children.length > 0; } }
+			function rows() { return picked.querySelectorAll('.paccc-md-ceu-pick'); }
+			function syncEmpty() { if (none) { none.hidden = rows().length > 0; } }
 
 			if (ceuToggle && ceuAddRow) {
 				ceuToggle.addEventListener('click', function (e) {
@@ -338,6 +339,12 @@
 				return null;
 			}
 
+			function cell(text) {
+				var td = document.createElement('td');
+				td.textContent = text || '';
+				return td;
+			}
+
 			function addCeu() {
 				if (!ceuInput) { return; }
 				var text = (ceuInput.value || '').trim();
@@ -348,40 +355,38 @@
 					return;
 				}
 				var id = opt.getAttribute('data-id');
-				if (picked.querySelector('.paccc-md-ceu-pick[data-id="' + id + '"]')) {
+				if (picked.querySelector('.paccc-md-ceu-pick[data-kind="catalog"][data-id="' + id + '"]')) {
 					say('This member already has that CEU.');
 					ceuInput.value = '';
 					return;
 				}
 				var name = opt.getAttribute('data-name') || text;
-				var extra = text.indexOf(' — ') > -1 ? text.slice(text.indexOf(' — ') + 3).replace(/ \(#\d+\)$/, '') : '';
 
-				var li = document.createElement('li');
-				li.className = 'paccc-md-ceu-pick';
-				li.setAttribute('data-id', id);
+				var tr = document.createElement('tr');
+				tr.className = 'paccc-md-ceu-pick';
+				tr.setAttribute('data-kind', 'catalog');
+				tr.setAttribute('data-id', id);
 
-				var nm = document.createElement('span');
-				nm.className = 'paccc-md-ceu-pick-name';
-				nm.textContent = name;
-				li.appendChild(nm);
+				var nameTd = cell(name);
+				nameTd.className = 'paccc-md-ceu-pick-name';
+				tr.appendChild(nameTd);
+				tr.appendChild(cell(opt.getAttribute('data-provider')));
+				tr.appendChild(cell(opt.getAttribute('data-code')));
+				tr.appendChild(cell(opt.getAttribute('data-amount')));
+				tr.appendChild(cell(''));
+				tr.appendChild(cell('Yes'));
 
-				if (extra) {
-					var ex = document.createElement('span');
-					ex.className = 'description';
-					ex.textContent = ' ' + extra;
-					li.appendChild(ex);
-				}
-
+				var last = document.createElement('td');
 				var hid = document.createElement('input');
 				hid.type = 'hidden'; hid.name = 'paccc_member_ceu_ids[]'; hid.value = id;
-				li.appendChild(hid);
-
+				last.appendChild(hid);
 				var del = document.createElement('button');
 				del.type = 'button'; del.className = 'paccc-md-ceu-remove';
 				del.setAttribute('aria-label', 'Remove ' + name); del.innerHTML = '&times;';
-				li.appendChild(del);
+				last.appendChild(del);
+				tr.appendChild(last);
 
-				picked.appendChild(li);
+				picked.insertBefore(tr, none || null);
 				ceuInput.value = '';
 				say('Added "' + name + '". Click Update to save.');
 				syncEmpty();
@@ -403,11 +408,17 @@
 			}
 
 			// Remove one CEU from this member only (saved when you click Update).
+			// Rows that didn't come from the catalog can't be added back, so confirm those.
 			picked.addEventListener('click', function (e) {
 				var btn = e.target.closest('.paccc-md-ceu-remove');
 				if (!btn) { return; }
-				var li = btn.closest('.paccc-md-ceu-pick');
-				if (li && li.parentNode) { li.parentNode.removeChild(li); }
+				var tr = btn.closest('.paccc-md-ceu-pick');
+				if (!tr) { return; }
+				if (tr.getAttribute('data-kind') !== 'catalog') {
+					var nm = ((tr.querySelector('.paccc-md-ceu-pick-name') || {}).textContent || 'this CEU').trim();
+					if (!window.confirm('Remove "' + nm + '" from this member? It isn\'t in the All CEUs catalog, so it can\'t be added back from there.')) { return; }
+				}
+				if (tr.parentNode) { tr.parentNode.removeChild(tr); }
 				say('Removed. Click Update to save.');
 				syncEmpty();
 			});

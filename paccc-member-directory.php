@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PACCC Suite
  * Description:       Member directory, approved-CEU catalog, and member portal for the Professional Animal Care Certification Council. Each member gets its own indexable page, plus a frontend US map + directory via [paccc_directory] and a CEU directory via [paccc_ceu_directory].
- * Version:           2.37.2
+ * Version:           2.40.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Nehmedia
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PACCC_MD_VERSION', '2.37.2' );
+define( 'PACCC_MD_VERSION', '2.40.0' );
 define( 'PACCC_MD_FILE', __FILE__ );
 define( 'PACCC_MD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PACCC_MD_URL', plugin_dir_url( __FILE__ ) );
@@ -254,10 +254,14 @@ function paccc_md_get_member( $post ) {
 		$certs = array_filter( array_map( 'trim', explode( ',', (string) $certs ) ) );
 	}
 
-	$ceus = get_post_meta( $post->ID, 'paccc_member_ceus', true );
-	if ( ! is_array( $ceus ) ) {
-		$ceus = array_filter( array_map( 'trim', explode( ',', (string) $ceus ) ) );
+	// The member's public CEU(s): programs picked from the All CEUs catalog
+	// (includes/member-ceus.php), then any names saved by the earlier
+	// free-text checklist.
+	$older_ceus = get_post_meta( $post->ID, 'paccc_member_ceus', true );
+	if ( ! is_array( $older_ceus ) ) {
+		$older_ceus = array_filter( array_map( 'trim', explode( ',', (string) $older_ceus ) ) );
 	}
+	$ceus = array_merge( paccc_md_member_catalog_ceu_names( $post->ID ), array_values( $older_ceus ) );
 
 	// CEUs imported from the old site (includes/legacy-ceus.php). Kept apart
 	// from the admin-managed CEU(s) list above. They are the member's own,
@@ -272,7 +276,7 @@ function paccc_md_get_member( $post ) {
 		'member_number'  => (string) get_post_meta( $post->ID, 'paccc_member_number', true ),
 		'member_name'    => (string) get_post_meta( $post->ID, 'paccc_member_name', true ),
 		'certifications' => array_values( $certs ),
-		'ceus'           => array_values( $ceus ),        // admin-managed CEU(s) checklist
+		'ceus'           => array_values( $ceus ),        // admin-set CEU(s): catalog picks + older free-text names
 		'legacy_ceus'    => $legacy_ceus,                 // old-site records (full detail)
 		'ceu_names'      => paccc_md_ceu_display_names( $ceus, array() ),        // PUBLIC: admin-managed CEU(s) only
 		'portal_ceu_names' => paccc_md_ceu_display_names( $ceus, $legacy_ceus ), // member's own portal only
@@ -510,6 +514,7 @@ require_once PACCC_MD_DIR . 'includes/state-urls.php';
 require_once PACCC_MD_DIR . 'includes/frontend.php';
 require_once PACCC_MD_DIR . 'includes/portal.php';
 require_once PACCC_MD_DIR . 'includes/ceu.php';
+require_once PACCC_MD_DIR . 'includes/member-ceus.php';
 require_once PACCC_MD_DIR . 'includes/legacy-ceus.php';
 require_once PACCC_MD_DIR . 'includes/member-slugs.php';
 if ( is_admin() ) {

@@ -257,7 +257,43 @@ function paccc_md_portal_shortcode( $atts ) {
 			<div class="paccc-portal-readonly">
 				<p><span class="paccc-portal-rolabel">Member Number</span> <?php echo esc_html( $m->member_number ); ?></p>
 				<p><span class="paccc-portal-rolabel">Certification(s)</span> <?php echo $m->certifications ? esc_html( implode( ', ', $m->certifications ) ) : '—'; ?></p>
-				<p><span class="paccc-portal-rolabel">CEU(s)</span> <?php echo $m->portal_ceu_names ? esc_html( implode( ', ', $m->portal_ceu_names ) ) : '—'; ?></p>
+				<?php $paccc_ceu_rows = paccc_md_portal_ceu_rows( $post_id ); ?>
+				<div class="paccc-portal-ceus">
+					<div class="paccc-portal-ceus-head">
+						<span class="paccc-portal-rolabel">CEU(s)<?php echo $paccc_ceu_rows ? ' (' . (int) count( $paccc_ceu_rows ) . ')' : ''; ?></span>
+						<?php if ( $paccc_ceu_rows ) : ?>
+							<a class="paccc-portal-submit paccc-portal-download" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'action', 'paccc_md_portal_ceus_csv', admin_url( 'admin-post.php' ) ), 'paccc_md_portal_ceus_csv' ) ); ?>">Download CSV</a>
+						<?php endif; ?>
+					</div>
+					<?php if ( $paccc_ceu_rows ) : ?>
+						<div class="paccc-portal-table-wrap">
+							<table class="paccc-portal-ceu-table">
+								<thead>
+									<tr>
+										<th scope="col">CEU</th>
+										<th scope="col">Provider</th>
+										<th scope="col">Code</th>
+										<th scope="col">Hours / CEUs</th>
+										<th scope="col">Date</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach ( $paccc_ceu_rows as $paccc_r ) : ?>
+										<tr>
+											<td data-label="CEU"><?php echo esc_html( '' !== $paccc_r['name'] ? $paccc_r['name'] : '—' ); ?></td>
+											<td data-label="Provider"><?php echo esc_html( $paccc_r['provider'] ); ?></td>
+											<td data-label="Code"><?php echo esc_html( $paccc_r['code'] ); ?></td>
+											<td data-label="Hours / CEUs"><?php echo esc_html( $paccc_r['hours'] ); ?></td>
+											<td data-label="Date"><?php echo esc_html( $paccc_r['date'] ); ?></td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+					<?php else : ?>
+						<p>&mdash;</p>
+					<?php endif; ?>
+				</div>
 				<p class="paccc-portal-note">Member Number, Certifications and CEUs are maintained by PACCC and can only be changed by an administrator.</p>
 			</div>
 
@@ -333,6 +369,37 @@ function paccc_md_portal_save() {
 	exit;
 }
 add_action( 'admin_post_paccc_md_portal_save', 'paccc_md_portal_save' );
+
+/**
+ * "Download CSV" in the portal: the logged-in member's own CEU table. Members
+ * can only ever download their own (the member is taken from the login, never
+ * from the request).
+ */
+function paccc_md_portal_ceus_csv() {
+	if ( ! is_user_logged_in() ) {
+		wp_die( 'You must be logged in to do that.' );
+	}
+	check_admin_referer( 'paccc_md_portal_ceus_csv' );
+
+	$uid     = get_current_user_id();
+	$post_id = paccc_md_member_post_for_user( $uid );
+	if ( ! $post_id || paccc_md_user_for_member( $post_id ) !== $uid ) {
+		wp_die( 'No member profile is linked to your account.' );
+	}
+
+	if ( ! function_exists( 'paccc_md_csv_open' ) ) {
+		require_once PACCC_MD_DIR . 'includes/export.php';
+	}
+	$m   = paccc_md_get_member( $post_id );
+	$out = paccc_md_csv_open( 'paccc-ceus-' . sanitize_file_name( $m && $m->member_number ? $m->member_number : (string) $post_id ) );
+	paccc_md_csv_row( $out, array( 'CEU', 'Provider', 'Code', 'Hours / CEUs', 'Date' ) );
+	foreach ( paccc_md_portal_ceu_rows( $post_id ) as $r ) {
+		paccc_md_csv_row( $out, array( $r['name'], $r['provider'], $r['code'], $r['hours'], $r['date'] ) );
+	}
+	fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	exit;
+}
+add_action( 'admin_post_paccc_md_portal_ceus_csv', 'paccc_md_portal_ceus_csv' );
 
 /* ---------------------------------------------------------------------------
  * Keep members out of wp-admin

@@ -144,10 +144,14 @@ function paccc_md_legacy_member_index() {
 	$wdt     = array();
 
 	foreach ( $posts as $p ) {
-		$existing = get_post_meta( $p->ID, PACCC_MD_LEGACY_CEU_META, true );
-		if ( is_array( $existing ) ) {
-			foreach ( array_keys( $existing ) as $k ) {
-				$wdt[ (int) $k ] = $p->ID;
+		// Records on the member, plus any an admin removed from it (so a
+		// removed record is never imported again).
+		foreach ( array( PACCC_MD_LEGACY_CEU_META, PACCC_MD_LEGACY_CEU_REMOVED_META ) as $meta_key ) {
+			$existing = get_post_meta( $p->ID, $meta_key, true );
+			if ( is_array( $existing ) ) {
+				foreach ( array_keys( $existing ) as $k ) {
+					$wdt[ (int) $k ] = $p->ID;
+				}
 			}
 		}
 

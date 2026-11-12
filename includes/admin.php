@@ -197,7 +197,7 @@ function paccc_md_shortcodes_reference() {
 	return array(
 		array(
 			'code' => '[paccc_directory]',
-			'desc' => 'The full public directory: interactive US map, state and A–Z name filters, and the member list. Put this on your directory page. CEUs are left out of the list by default; add ceus="true" to show each member’s CEU(s) in their View Member panel (only the CEU(s) set on the member here; CEUs imported from the old site are private and appear only in the member’s portal). heading="0" / intro="0" drop the built-in heading / intro sentence.',
+			'desc' => 'The full public directory: interactive US map, state and A–Z name filters, and the member list. Put this on your directory page. CEUs are left out of the list by default; add ceus="true" to show each member’s CEU(s) in their View Member panel (only CEUs marked “Yes” under Public page on the member; the rest appear only in the member’s portal). heading="0" / intro="0" drop the built-in heading / intro sentence.',
 		),
 		array(
 			'code' => '[paccc_ceu_directory]',
@@ -488,8 +488,7 @@ function paccc_md_render_meta_box( $post ) {
 		<tr>
 			<th scope="row">CEU(s)</th>
 			<td>
-				<?php paccc_md_render_member_ceu_picker( $post ); // CEUs from the All CEUs catalog (includes/member-ceus.php) ?>
-				<?php paccc_md_render_legacy_ceu_list( $post ); // private old-site CEUs (includes/legacy-ceus.php) ?>
+				<?php paccc_md_render_member_ceu_picker( $post ); // the member's CEUs, one table (includes/member-ceus.php) ?>
 			</td>
 		</tr>
 		<tr>

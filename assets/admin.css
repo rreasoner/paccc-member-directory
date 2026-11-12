@@ -92,30 +92,41 @@
 	margin-top: 6px;
 }
 
-/* A member's CEUs picked from the All CEUs catalog */
-.paccc-md-ceu-picked {
-	margin: 0 0 4px;
-	padding: 0;
-	list-style: none;
-	max-width: 760px;
+/* A member's CEUs: one table (imported + picked from the All CEUs catalog) */
+.paccc-md-ceu-table-wrap {
+	max-width: 980px;
+	max-height: 520px;
+	overflow: auto;
+	border: 1px solid #c3c4c7;
 }
 
-.paccc-md-ceu-pick {
-	display: flex;
-	align-items: baseline;
-	gap: 8px;
-	margin: 0;
-	padding: 6px 0;
-	border-bottom: 1px solid #f0f0f1;
+.paccc-md-ceu-table {
+	border: 0;
 }
 
-.paccc-md-ceu-pick .paccc-md-ceu-pick-name {
-	flex: 1 1 auto;
-}
-
-.paccc-md-ceu-pick .description {
-	flex: 0 0 auto;
+.paccc-md-ceu-table th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #f6f7f7;
 	white-space: nowrap;
+}
+
+.paccc-md-ceu-table td {
+	vertical-align: middle;
+}
+
+.paccc-md-ceu-table td:nth-child(3),
+.paccc-md-ceu-table td:nth-child(4),
+.paccc-md-ceu-table td:nth-child(5),
+.paccc-md-ceu-table td:nth-child(6) {
+	white-space: nowrap;
+}
+
+.paccc-md-ceu-table td:last-child,
+.paccc-md-ceu-table th:last-child {
+	width: 28px;
+	text-align: center;
 }
 
 .paccc-md-ceu-remove {
