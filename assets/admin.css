@@ -92,6 +92,48 @@
 	margin-top: 6px;
 }
 
+/* A member's CEUs picked from the All CEUs catalog */
+.paccc-md-ceu-picked {
+	margin: 0 0 4px;
+	padding: 0;
+	list-style: none;
+	max-width: 760px;
+}
+
+.paccc-md-ceu-pick {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin: 0;
+	padding: 6px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.paccc-md-ceu-pick .paccc-md-ceu-pick-name {
+	flex: 1 1 auto;
+}
+
+.paccc-md-ceu-pick .description {
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+.paccc-md-ceu-remove {
+	flex: 0 0 auto;
+	padding: 0 6px;
+	border: 0;
+	background: transparent;
+	color: #b32d2e;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.paccc-md-ceu-remove:hover,
+.paccc-md-ceu-remove:focus {
+	color: #8a2322;
+}
+
 /* The × delete button on certification and CEU rows */
 .paccc-md-row-delete {
 	flex: 0 0 auto;

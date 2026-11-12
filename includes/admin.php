@@ -488,41 +488,7 @@ function paccc_md_render_meta_box( $post ) {
 		<tr>
 			<th scope="row">CEU(s)</th>
 			<td>
-				<?php $all_ceus = paccc_md_ceus(); ?>
-				<div id="paccc-md-ceu-list">
-					<?php foreach ( $all_ceus as $ceu ) : ?>
-						<div class="paccc-md-ceu-row">
-							<label class="paccc-md-ceu">
-								<input type="checkbox" name="paccc_member_ceus[]" value="<?php echo esc_attr( $ceu ); ?>"
-									<?php checked( in_array( $ceu, $member->ceus, true ) ); ?> />
-							</label>
-							<input type="text"
-								class="paccc-md-ceu-input regular-text"
-								<?php echo $can_manage ? 'name="paccc_ceus[]"' : 'readonly'; ?>
-								value="<?php echo esc_attr( $ceu ); ?>" />
-							<?php if ( $can_manage ) : ?>
-								<button type="button" class="paccc-md-row-delete paccc-md-ceu-delete" aria-label="Delete this CEU">&times;</button>
-							<?php endif; ?>
-						</div>
-					<?php endforeach; ?>
-				</div>
-				<p class="description">
-					Continuing Education Units. Check the ones this member holds.
-					<?php if ( $can_manage ) : ?>
-						Edit a CEU&rsquo;s text to rename it, or use the &times; to remove it (it is also stripped from every member). Changes save with the member.
-					<?php else : ?>
-						The CEU list is managed by an administrator.
-					<?php endif; ?>
-				</p>
-				<?php if ( $can_manage ) : ?>
-					<p>
-						<a href="#" id="paccc-md-add-ceu-toggle">+ Add a CEU</a>
-					</p>
-					<p id="paccc-md-add-ceu-row" hidden>
-						<input type="text" id="paccc-md-new-ceu" class="regular-text" placeholder="e.g. Canine First Aid 2025" />
-						<button type="button" class="button" id="paccc-md-add-ceu-btn">Add</button>
-					</p>
-				<?php endif; ?>
+				<?php paccc_md_render_member_ceu_picker( $post ); // CEUs from the All CEUs catalog (includes/member-ceus.php) ?>
 				<?php paccc_md_render_legacy_ceu_list( $post ); // private old-site CEUs (includes/legacy-ceus.php) ?>
 			</td>
 		</tr>
@@ -647,7 +613,7 @@ function paccc_md_save_member( $post_id, $post ) {
 		paccc_md_set_member_image( $post_id, (int) $_POST['paccc_image_id'] );
 	}
 
-	// Certifications and CEUs each have a global list (edited inline from any
+	// Certifications have a global list (edited inline from any
 	// member's edit screen) plus a per-member selection. The global lists are
 	// site-wide settings, so rebuilding them from the submitted rows -- which is
 	// what makes the inline "+ Add" / edit / × work -- is gated on manage_options.
@@ -684,25 +650,6 @@ function paccc_md_save_member( $post_id, $post ) {
 				paccc_md_strip_member_meta_values( 'paccc_certifications', $removed );
 			}
 		}
-
-		// Global CEU list, from the per-row text inputs.
-		if ( isset( $_POST['paccc_ceus'] ) ) {
-			$old_ceus = paccc_md_ceus();
-			$new_ceus = array();
-			foreach ( (array) wp_unslash( $_POST['paccc_ceus'] ) as $c ) {
-				$c = sanitize_text_field( trim( $c ) );
-				if ( '' !== $c ) {
-					$new_ceus[] = $c;
-				}
-			}
-			$new_ceus = array_values( array_unique( $new_ceus ) );
-			update_option( 'paccc_ceus', $new_ceus );
-
-			$removed = array_diff( $old_ceus, $new_ceus );
-			if ( $removed ) {
-				paccc_md_strip_member_meta_values( 'paccc_member_ceus', $removed );
-			}
-		}
 	}
 
 	// This member's certifications: checkbox values limited to the global list.
@@ -711,11 +658,10 @@ function paccc_md_save_member( $post_id, $post ) {
 	$selected = array_values( array_intersect( array_map( 'sanitize_text_field', $selected ), $known ) );
 	update_post_meta( $post_id, 'paccc_certifications', $selected );
 
-	// This member's CEUs: checkbox values limited to the global list.
-	$known_ceus    = paccc_md_ceus();
-	$selected_ceus = isset( $_POST['paccc_member_ceus'] ) ? (array) wp_unslash( $_POST['paccc_member_ceus'] ) : array();
-	$selected_ceus = array_values( array_intersect( array_map( 'sanitize_text_field', $selected_ceus ), $known_ceus ) );
-	update_post_meta( $post_id, 'paccc_member_ceus', $selected_ceus );
+	// CEUs are chosen from the All CEUs catalog and saved by
+	// paccc_md_save_member_catalog_ceus() (includes/member-ceus.php). The old
+	// free-text paccc_member_ceus list is no longer edited here, so any names
+	// saved in it are left untouched.
 }
 add_action( 'save_post', 'paccc_md_save_member', 10, 2 );
 

@@ -305,13 +305,20 @@
 			}
 		})();
 
-		/* ---------- CEUs: add / edit / delete rows (client-side; saved with the member) ---------- */
+		/* ---------- CEUs: pick from the All CEUs catalog (saved with the member) ---------- */
 		(function () {
-			var ceuList = document.getElementById('paccc-md-ceu-list');
+			var picked = document.getElementById('paccc-md-ceu-picked');
+			var none = document.getElementById('paccc-md-ceu-none');
+			var catalog = document.getElementById('paccc-md-ceu-catalog');
 			var ceuToggle = document.getElementById('paccc-md-add-ceu-toggle');
 			var ceuAddRow = document.getElementById('paccc-md-add-ceu-row');
 			var ceuInput = document.getElementById('paccc-md-new-ceu');
 			var ceuAddBtn = document.getElementById('paccc-md-add-ceu-btn');
+			var msg = document.getElementById('paccc-md-ceu-msg');
+			if (!picked || !catalog) { return; }
+
+			function say(text) { if (msg) { msg.textContent = text || ''; } }
+			function syncEmpty() { if (none) { none.hidden = picked.children.length > 0; } }
 
 			if (ceuToggle && ceuAddRow) {
 				ceuToggle.addEventListener('click', function (e) {
@@ -321,51 +328,89 @@
 				});
 			}
 
+			// The typed text must match a catalog entry exactly (choosing from
+			// the suggestion list fills it in); free text is not accepted.
+			function findOption(text) {
+				var opts = catalog.options;
+				for (var i = 0; i < opts.length; i++) {
+					if (opts[i].value === text) { return opts[i]; }
+				}
+				return null;
+			}
+
 			function addCeu() {
-				if (!ceuList || !ceuInput) { return; }
+				if (!ceuInput) { return; }
 				var text = (ceuInput.value || '').trim();
 				if (!text) { return; }
-				var row = document.createElement('div');
-				row.className = 'paccc-md-ceu-row';
+				var opt = findOption(text);
+				if (!opt) {
+					say('Choose a CEU from the suggestion list — type part of its name or program code, then pick it.');
+					return;
+				}
+				var id = opt.getAttribute('data-id');
+				if (picked.querySelector('.paccc-md-ceu-pick[data-id="' + id + '"]')) {
+					say('This member already has that CEU.');
+					ceuInput.value = '';
+					return;
+				}
+				var name = opt.getAttribute('data-name') || text;
+				var extra = text.indexOf(' — ') > -1 ? text.slice(text.indexOf(' — ') + 3).replace(/ \(#\d+\)$/, '') : '';
 
-				var lbl = document.createElement('label');
-				lbl.className = 'paccc-md-ceu';
-				var cb = document.createElement('input');
-				cb.type = 'checkbox'; cb.name = 'paccc_member_ceus[]'; cb.value = text; cb.checked = true;
-				lbl.appendChild(cb);
+				var li = document.createElement('li');
+				li.className = 'paccc-md-ceu-pick';
+				li.setAttribute('data-id', id);
 
-				var inp = document.createElement('input');
-				inp.type = 'text'; inp.className = 'paccc-md-ceu-input regular-text';
-				inp.name = 'paccc_ceus[]'; inp.value = text;
+				var nm = document.createElement('span');
+				nm.className = 'paccc-md-ceu-pick-name';
+				nm.textContent = name;
+				li.appendChild(nm);
+
+				if (extra) {
+					var ex = document.createElement('span');
+					ex.className = 'description';
+					ex.textContent = ' ' + extra;
+					li.appendChild(ex);
+				}
+
+				var hid = document.createElement('input');
+				hid.type = 'hidden'; hid.name = 'paccc_member_ceu_ids[]'; hid.value = id;
+				li.appendChild(hid);
 
 				var del = document.createElement('button');
-				del.type = 'button'; del.className = 'paccc-md-row-delete paccc-md-ceu-delete';
-				del.setAttribute('aria-label', 'Delete this CEU'); del.innerHTML = '&times;';
+				del.type = 'button'; del.className = 'paccc-md-ceu-remove';
+				del.setAttribute('aria-label', 'Remove ' + name); del.innerHTML = '&times;';
+				li.appendChild(del);
 
-				row.appendChild(lbl); row.appendChild(inp); row.appendChild(del);
-				ceuList.appendChild(row);
+				picked.appendChild(li);
 				ceuInput.value = '';
+				say('Added "' + name + '". Click Update to save.');
+				syncEmpty();
+				ceuInput.focus();
 			}
 
 			if (ceuAddBtn) {
 				ceuAddBtn.addEventListener('click', addCeu);
-				if (ceuInput) {
-					ceuInput.addEventListener('keydown', function (e) {
-						if (e.key === 'Enter') { e.preventDefault(); addCeu(); }
-					});
-				}
 			}
-
-			// Keep each CEU checkbox value synced to its text input so renaming a
-			// CEU keeps the member's selection pointing at the right value on save.
-			if (ceuList) {
-				ceuList.addEventListener('input', function (e) {
-					if (!e.target.classList || !e.target.classList.contains('paccc-md-ceu-input')) { return; }
-					var r = e.target.closest('.paccc-md-ceu-row');
-					var box = r && r.querySelector('input[type="checkbox"]');
-					if (box) { box.value = e.target.value; }
+			if (ceuInput) {
+				ceuInput.addEventListener('keydown', function (e) {
+					if (e.key === 'Enter') { e.preventDefault(); addCeu(); }
+				});
+				// Picking a suggestion fires "input" with the full label: add it right away.
+				ceuInput.addEventListener('input', function () {
+					say('');
+					if (findOption(ceuInput.value)) { addCeu(); }
 				});
 			}
+
+			// Remove one CEU from this member only (saved when you click Update).
+			picked.addEventListener('click', function (e) {
+				var btn = e.target.closest('.paccc-md-ceu-remove');
+				if (!btn) { return; }
+				var li = btn.closest('.paccc-md-ceu-pick');
+				if (li && li.parentNode) { li.parentNode.removeChild(li); }
+				say('Removed. Click Update to save.');
+				syncEmpty();
+			});
 		})();
 
 		/* ---------- Row delete (x on certification and CEU rows) ---------- */
